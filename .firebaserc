@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "default": "upbeat-airfoil-421817"
+  },
+  "targets": {
+    "upbeat-airfoil-421817": {
+      "hosting": {
+        "poker-game-client": [
+          "poker-game-client"
+        ]
+      }
+    }
+  },
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}
