@@ -7,11 +7,6 @@ import { getTableStateUrl } from '../api/tables';
 import { setPlayer } from '../store/playerSlice';
 import { setGameSession } from '../store/gameSessionSlice';
 
-/**
- * Listens to Firebase poker/gamestate/{sessionId}.
- * When shouldSync is true: immediately set shouldSync to false in Firebase,
- * then call GET /api/game/tables/{tableId}/state?playerId=... once per browser (ref guards duplicate calls).
- */
 export default function FirebaseGameStateListener({ sessionId, tableId, playerId, currency, mode }) {
   const dispatch = useDispatch();
   const syncInProgressRef = useRef(false);

@@ -22,7 +22,7 @@ const gameSessionSlice = createSlice({
   initialState,
   reducers: {
     setGameSession: (state, { payload }) => {
-      if (!payload) return; // Don't reset, just skip update
+      if (!payload) return;
       if (payload.sessionId !== undefined) state.sessionId = payload.sessionId ?? null;
       if (payload.currentStreet !== undefined) state.currentStreet = payload.currentStreet ?? null;
       if (payload.status !== undefined) state.status = payload.status ?? null;

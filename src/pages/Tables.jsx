@@ -50,10 +50,12 @@ export default function Tables() {
       show: true,
       table: t,
       form: {
+        tableName: t.tableName ?? '',
         seatCount: t.seatCount ?? 6,
         minPlayers: t.minPlayers ?? 2,
         smallBlind: t.smallBlind ?? 10,
         bigBlind: t.bigBlind ?? 20,
+        turnTimer: t.turnTimer ?? 0,
       },
       errors: {},
       saving: false,
@@ -74,7 +76,10 @@ export default function Tables() {
   const updateEditForm = (name, value) => {
     setEditModal((prev) => ({
       ...prev,
-      form: { ...prev.form, [name]: value === '' ? '' : Number(value) },
+      form: {
+        ...prev.form,
+        [name]: name === 'tableName' ? value : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))),
+      },
       errors: { ...prev.errors, [name]: null },
     }));
   };
@@ -92,6 +97,8 @@ export default function Tables() {
     if (isNaN(smallBlind) || smallBlind < 0) next.smallBlind = 'Small blind must be ≥ 0';
     if (isNaN(bigBlind) || bigBlind < 0) next.bigBlind = 'Big blind must be ≥ 0';
     if (!next.bigBlind && bigBlind < smallBlind) next.bigBlind = 'Big blind must be ≥ small blind';
+    const turnTimer = Number(form.turnTimer);
+    if (isNaN(turnTimer) || turnTimer < 0) next.turnTimer = 'Turn timer must be ≥ 0';
     setEditModal((prev) => ({ ...prev, errors: next }));
     return Object.keys(next).length === 0;
   };
@@ -103,10 +110,12 @@ export default function Tables() {
     const { table, form } = editModal;
     const seatCount = Number(form.seatCount);
     const payload = {
+      tableName: form.tableName?.trim() || null,
       seatCount,
       minPlayers: Number(form.minPlayers),
       smallBlind: Number(form.smallBlind),
       bigBlind: Number(form.bigBlind),
+      turnTimer: Number(form.turnTimer) || 0,
     };
     setEditModal((prev) => ({ ...prev, saving: true }));
     try {
@@ -229,6 +238,16 @@ export default function Tables() {
             <div style={{ marginBottom: '0.5rem', fontSize: 14, color: '#666' }}>Table ID: <strong>{editModal.table.id}</strong></div>
             <form onSubmit={submitEdit}>
               <FormField
+                id="editTableName"
+                label="Table name (optional)"
+                type="text"
+                name="tableName"
+                value={editModal.form.tableName}
+                onChange={(e) => updateEditForm('tableName', e.target.value)}
+                error={editModal.errors.tableName}
+                placeholder="e.g. Main table"
+              />
+              <FormField
                 id="editSeatCount"
                 label="Seat count (2–10)"
                 type="number"
@@ -268,6 +287,16 @@ export default function Tables() {
                 value={editModal.form.bigBlind}
                 onChange={(e) => updateEditForm('bigBlind', e.target.value)}
                 error={editModal.errors.bigBlind}
+              />
+              <FormField
+                id="editTurnTimer"
+                label="Turn timer (seconds, 0 = off)"
+                type="number"
+                name="turnTimer"
+                min={0}
+                value={editModal.form.turnTimer}
+                onChange={(e) => updateEditForm('turnTimer', e.target.value)}
+                error={editModal.errors.turnTimer}
               />
               {editModal.message && (
                 <p style={{ color: editModal.message === 'Saved.' ? 'green' : 'red', marginBottom: '1rem', fontSize: 14 }}>{editModal.message}</p>

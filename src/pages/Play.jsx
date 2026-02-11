@@ -19,7 +19,7 @@ export default function Play() {
   const navigate = useNavigate();
   const currency = searchParams.get('currency') || 'PC';
   const modeParam = (searchParams.get('mode') || 'demo').toLowerCase();
-  const mode = modeParam === 'real' ? 'real' : 'demo'; // Normalize to 'real' or 'demo'
+  const mode = modeParam === 'real' ? 'real' : 'demo';
   const dispatch = useDispatch();
   const player = useSelector((state) => state.player);
   const gameSession = useSelector((state) => state.gameSession);
@@ -155,9 +155,7 @@ export default function Play() {
             seatIndex={player.position}
             playerId={playerId}
             sessionId={gameSession.sessionId}
-            onActionSubmitted={() => {
-              // Action submitted, state will be updated via Firebase listener
-            }}
+            onActionSubmitted={() => {}}
           />
         )}
       </div>

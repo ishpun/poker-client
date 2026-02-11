@@ -1,7 +1,6 @@
 html, body { margin: 0; padding: 0; }
 #root { min-height: 100vh; }
 
-/* Touch-friendly tap targets and safe areas */
 @media (max-width: 768px) {
   body {
     padding-left: env(safe-area-inset-left);
@@ -10,7 +9,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Tables page */
 .tables-page {
   max-width: 640px;
   margin: 2rem auto;
@@ -63,7 +61,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Table config page */
 .table-config-page {
   max-width: 400px;
   margin: 2rem auto;
@@ -77,7 +74,6 @@ html, body { margin: 0; padding: 0; }
   .table-config-page h1 { font-size: 1.5rem; }
 }
 
-/* Modal */
 .modal-backdrop {
   padding: 2rem;
   box-sizing: border-box;
@@ -105,14 +101,12 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Play page: avoid fixed background on mobile (iOS performance) */
 @media (max-width: 768px) {
   .play-page {
     background-attachment: scroll !important;
   }
 }
 
-/* Play page */
 .play-status-bar {
   flex-shrink: 0;
   display: flex;
@@ -137,7 +131,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Game header */
 .game-header {
   white-space: normal;
   word-break: break-word;
@@ -152,7 +145,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Table view */
 .table-view-container {
   position: relative;
   width: 100%;
@@ -189,7 +181,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Seat UI - scale down on mobile (avatar, cards, chip bar, name, badges - whole player box) */
 .seat-ui-wrapper {
   display: flex;
   flex-direction: column;
@@ -261,7 +252,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* TableView community cards - smaller on mobile */
 .table-view-center-cards .community-card-slot {
   width: 56px;
   height: 78px;
@@ -278,7 +268,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Action buttons bar */
 .action-buttons-bar {
   position: fixed;
   bottom: 20px;
@@ -312,7 +301,6 @@ html, body { margin: 0; padding: 0; }
   }
 }
 
-/* Slider overlay (raise/bet) */
 .slider-overlay {
   position: fixed;
   bottom: 100px;

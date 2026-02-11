@@ -270,7 +270,6 @@ const actionBubbleArrowStyle = {
   borderBottom: '10px solid #fff',
 };
 
-// Add keyframes animation - ensure it's only added once
 if (typeof document !== 'undefined' && !document.getElementById('seat-ui-animations')) {
   const styleSheet = document.createElement('style');
   styleSheet.id = 'seat-ui-animations';
@@ -317,7 +316,6 @@ function formatHandRank(handRank) {
 
 function formatAction(action) {
   if (!action) return '';
-  // Convert action to readable format
   const actionMap = {
     'FOLD': 'Fold',
     'CALL': 'Call',
@@ -331,13 +329,9 @@ function formatAction(action) {
 
 function getActionFromSeat(seat) {
   if (!seat) return null;
-  
-  // Check for explicit lastAction or currentAction field
   if (seat.lastAction) return seat.lastAction;
   if (seat.currentAction) return seat.currentAction;
   if (seat.action) return seat.action;
-  
-  // Derive from status if folded
   const status = (seat.status || '').toUpperCase();
   if (status === 'FOLDED') return 'FOLD';
   
@@ -366,11 +360,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
   const isCurrentPlayer = isMe && isCurrentActor;
   const status = (seat.status || '').toUpperCase();
   const lastAction = getActionFromSeat(seat);
-  // Show action bubble if there's an action (including FOLD)
-  // Hide it when it's the current actor's turn or WINNER status
   const showActionBubble = lastAction && status !== 'WINNER' && !isCurrentActor;
-  // Show status overlay only for non-action statuses (ALL_IN, QUIT) or WINNER
-  // Don't show FOLDED overlay if we're showing action bubble
   const showStatusOverlay = STATUS_OVERLAY.includes(status) && (!lastAction || status === 'WINNER' || status === 'ALL_IN' || status === 'QUIT');
 
   return (
@@ -391,7 +381,6 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
           </div>
         )}
         {isMe ? (
-          // Current user - show actual hole cards if available
           holeCards.length > 0 && (
             <div className="seat-cards-container" style={cardsContainerStyle}>
               {holeCards.map((cardStr, index) => {
@@ -410,7 +399,6 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
             </div>
           )
         ) : (
-          // Other players - always show face-down card backs
           <div className="seat-cards-container" style={cardsContainerStyle}>
             {[0, 1].map((index) => (
               <div

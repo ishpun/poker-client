@@ -16,7 +16,7 @@ const playerSlice = createSlice({
   initialState,
   reducers: {
     setPlayer: (state, { payload }) => {
-      if (!payload) return; // Don't reset, just skip update
+      if (!payload) return;
       if (payload.position !== undefined) state.position = payload.position ?? null;
       if (payload.playerId !== undefined) state.playerId = payload.playerId ?? null;
       if (payload.playerName !== undefined) state.playerName = payload.playerName ?? null;

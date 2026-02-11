@@ -11,14 +11,21 @@ const style = {
   boxSizing: 'border-box',
 };
 
+function trimIdByFirst(id) {
+  if (!id || typeof id !== 'string') return '—';
+  const trimmed = id.trim();
+  const firstSegment = trimmed.split('-')[0];
+  return firstSegment || trimmed;
+}
+
 export default function GameHeader({ tableConfig, tableId, sessionId }) {
   if (!tableConfig) return null;
   const parts = [
     `Seats: ${tableConfig.seatCount ?? '—'}`,
     `Small blind: ${tableConfig.smallBlind ?? '—'}`,
     `Big blind: ${tableConfig.bigBlind ?? '—'}`,
-    `Table ID: ${tableId || '—'}`,
-    sessionId && `Session ID: ${sessionId}`,
+    `Table ID: ${trimIdByFirst(tableId)}`,
+    sessionId && `Session ID: ${trimIdByFirst(sessionId)}`,
   ].filter(Boolean);
   return <header className="game-header" style={style}>{parts.join(sep)}</header>;
 }

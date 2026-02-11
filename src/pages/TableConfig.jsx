@@ -6,10 +6,12 @@ import Button from '../components/Button';
 import FormField from '../components/FormField';
 
 const defaultValues = {
+  tableName: '',
   seatCount: 6,
   minPlayers: 2,
   smallBlind: 10,
   bigBlind: 20,
+  turnTimer: 0,
 };
 
 export default function TableConfig() {
@@ -23,7 +25,7 @@ export default function TableConfig() {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: value === '' ? '' : Number(value),
+      [name]: name === 'tableName' ? value : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))),
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
@@ -46,6 +48,8 @@ export default function TableConfig() {
     if (!next.bigBlind && bigBlind < smallBlind) {
       next.bigBlind = 'Big blind must be ≥ small blind';
     }
+    const turnTimer = Number(form.turnTimer);
+    if (isNaN(turnTimer) || turnTimer < 0) next.turnTimer = 'Turn timer must be ≥ 0';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -57,10 +61,12 @@ export default function TableConfig() {
 
     const seatCount = Number(form.seatCount);
     const payload = {
+      tableName: form.tableName?.trim() || null,
       seatCount,
       minPlayers: Number(form.minPlayers),
       smallBlind: Number(form.smallBlind),
       bigBlind: Number(form.bigBlind),
+      turnTimer: Number(form.turnTimer) || 0,
     };
 
     setLoading(true);
@@ -80,10 +86,12 @@ export default function TableConfig() {
     <div className="table-config-page">
       <h1>Table configuration</h1>
       <form onSubmit={handleSubmit}>
+        <FormField id="tableName" label="Table name (optional)" name="tableName" type="text" value={form.tableName} onChange={handleChange} error={errors.tableName} placeholder="e.g. Main table" />
         <FormField id="seatCount" label="Seat count (2–10)" name="seatCount" type="number" min={2} max={10} value={form.seatCount} onChange={handleChange} error={errors.seatCount} />
         <FormField id="minPlayers" label="Min players" name="minPlayers" type="number" min={2} value={form.minPlayers} onChange={handleChange} error={errors.minPlayers} />
         <FormField id="smallBlind" label="Small blind" name="smallBlind" type="number" min={0} value={form.smallBlind} onChange={handleChange} error={errors.smallBlind} />
         <FormField id="bigBlind" label="Big blind" name="bigBlind" type="number" min={0} value={form.bigBlind} onChange={handleChange} error={errors.bigBlind} />
+        <FormField id="turnTimer" label="Turn timer (seconds, 0 = off)" name="turnTimer" type="number" min={0} value={form.turnTimer} onChange={handleChange} error={errors.turnTimer} />
         {message.text && (
           <p style={{ color: message.type === 'error' ? 'red' : 'green', marginBottom: '1rem' }}>{message.text}</p>
         )}

@@ -1,6 +1,5 @@
 import SeatUI from './SeatUI';
 
-// Seat order: true = anticlockwise (0 at top, then 1,2,3,4 going left), false = clockwise (going right)
 const SEAT_ANTICLOCKWISE = true;
 
 function getSeatPosition(seatIndex, myPosition, totalSeats, radiusX = 40, radiusY = 35) {
