@@ -3,29 +3,16 @@ import axios from 'axios';
 import { submitActionUrl } from '../api/tables';
 
 const buttonContainerStyle = {
-  position: 'fixed',
-  bottom: 20,
-  left: '50%',
-  transform: 'translateX(-50%)',
   display: 'flex',
   gap: 12,
   alignItems: 'center',
-  zIndex: 1000,
-  padding: '12px 20px',
-  background: 'rgba(0, 0, 0, 0.8)',
-  borderRadius: 12,
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
   flexWrap: 'wrap',
   justifyContent: 'center',
 };
 
 const sliderOverlayStyle = {
   position: 'fixed',
-  bottom: 100,
-  left: '50%',
-  transform: 'translateX(-50%)',
   zIndex: 1001,
-  minWidth: 400,
   padding: '10px 16px',
   background: 'rgba(0, 0, 0, 0.95)',
   borderRadius: 8,
@@ -302,7 +289,7 @@ export default function ActionButtons({ allowedActions, tableId, seatIndex, play
   return (
     <>
       {showSlider && (
-        <div style={sliderOverlayStyle}>
+        <div className="slider-overlay" style={sliderOverlayStyle}>
           <div style={sliderContainerStyle}>
             <button
               onClick={handleDecrease}
@@ -363,7 +350,7 @@ export default function ActionButtons({ allowedActions, tableId, seatIndex, play
           </div>
         </div>
       )}
-      <div style={buttonContainerStyle}>
+      <div className="action-buttons-bar" style={buttonContainerStyle}>
         {allowedActions.map((actionData) => {
           const { action, callAmount } = actionData;
           const displayAmount = (action === 'CALL' || action === 'ALL_IN') ? callAmount : null;

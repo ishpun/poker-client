@@ -77,7 +77,7 @@ export default function TableConfig() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '2rem auto', padding: '0 1rem' }}>
+    <div className="table-config-page">
       <h1>Table configuration</h1>
       <form onSubmit={handleSubmit}>
         <FormField id="seatCount" label="Seat count (2–10)" name="seatCount" type="number" min={2} max={10} value={form.seatCount} onChange={handleChange} error={errors.seatCount} />

@@ -95,7 +95,7 @@ export default function Play() {
 
   if (loading) {
     return (
-      <div style={{ ...pageStyle, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="play-page" style={{ ...pageStyle, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ ...overlayStyle, textAlign: 'center' }}>
           <p>Joining game…</p>
         </div>
@@ -105,7 +105,7 @@ export default function Play() {
 
   if (error) {
     return (
-      <div style={{ ...pageStyle, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="play-page" style={{ ...pageStyle, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ maxWidth: 500, ...overlayStyle, textAlign: 'center' }}>
           <p style={{ color: '#ffcdd2', marginBottom: '1rem' }}>{error}</p>
           <Button onClick={() => navigate('/tables')}>Back to Tables</Button>
@@ -117,12 +117,12 @@ export default function Play() {
   const hasGameSession = gameSession.sessionId != null;
 
   return (
-    <div style={{ ...pageStyle, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="play-page" style={{ ...pageStyle, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <FirebaseGameStateListener sessionId={gameSession?.sessionId} tableId={tableId} playerId={playerId} currency={currency} mode={mode.toUpperCase()} />
       <GameHeader tableConfig={tableConfig} tableId={tableId} sessionId={gameSession.sessionId} />
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', padding: '0.5rem 1rem', flexWrap: 'wrap', ...overlayStyle }}>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="play-status-bar" style={{ ...overlayStyle }}>
+          <div className="play-badges" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span style={{ padding: '0.25rem 0.6rem', background: mode === 'real' ? 'rgba(244,67,54,0.9)' : 'rgba(156,39,176,0.9)', color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>
               {mode.toUpperCase()}
             </span>

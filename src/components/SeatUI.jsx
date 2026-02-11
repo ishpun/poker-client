@@ -18,6 +18,7 @@ const wrapperStyle = {
   color: '#fff',
   textShadow: '0 1px 2px rgba(0,0,0,0.6)',
 };
+const wrapperClassName = 'seat-ui-wrapper';
 
 const avatarWrapStyle = {
   position: 'relative',
@@ -87,6 +88,7 @@ const emptyStyle = {
   alignItems: 'center',
   justifyContent: 'center',
 };
+const emptyClassName = 'seat-empty';
 
 const roleBadgeStyle = (label) => ({
   position: 'absolute',
@@ -107,6 +109,7 @@ const roleBadgeStyle = (label) => ({
   padding: '0 4px',
   boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
 });
+const roleBadgeClassName = 'seat-role-badge';
 
 const STATUS_OVERLAY = ['FOLDED', 'ALL_IN', 'QUIT', 'WINNER'];
 
@@ -129,6 +132,7 @@ const statusOverlayStyle = {
   zIndex: 3,
   pointerEvents: 'none',
 };
+const statusOverlayClassName = 'seat-status-overlay';
 
 const winnerOverlayStyle = {
   ...statusOverlayStyle,
@@ -140,6 +144,7 @@ const winnerOverlayStyle = {
   flexDirection: 'column',
   gap: 2,
 };
+const winnerOverlayClassName = 'seat-status-overlay';
 
 const winnerHandRankStyle = { fontSize: 10, fontWeight: 700, opacity: 0.95 };
 const winnerPayoutStyle = { fontSize: 13, fontWeight: 800 };
@@ -232,6 +237,7 @@ const currentActorHighlightStyle = {
   animation: 'pulse 2s ease-in-out infinite',
   pointerEvents: 'none',
 };
+const currentActorHighlightClassName = 'seat-current-highlight';
 
 const actionBubbleStyle = {
   position: 'relative',
@@ -250,6 +256,7 @@ const actionBubbleStyle = {
   letterSpacing: '0.5px',
   alignSelf: 'center',
 };
+const actionBubbleClassName = 'seat-action-bubble';
 
 const actionBubbleArrowStyle = {
   position: 'absolute',
@@ -344,10 +351,10 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
 
   if (!filled) {
     return (
-      <div style={wrapperStyle}>
+      <div className={wrapperClassName} style={wrapperStyle}>
         <div style={{ ...avatarWrapStyle, position: 'relative' }}>
-          <div style={emptyStyle}>Empty</div>
-          {roleLabel && <span style={roleBadgeStyle(roleLabel)}>{roleLabel}</span>}
+          <div className={emptyClassName} style={emptyStyle}>Empty</div>
+          {roleLabel && <span className={roleBadgeClassName} style={roleBadgeStyle(roleLabel)}>{roleLabel}</span>}
         </div>
       </div>
     );
@@ -367,12 +374,12 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
   const showStatusOverlay = STATUS_OVERLAY.includes(status) && (!lastAction || status === 'WINNER' || status === 'ALL_IN' || status === 'QUIT');
 
   return (
-    <div style={wrapperStyle}>
+    <div className={wrapperClassName} style={wrapperStyle}>
       <div style={avatarWrapStyle}>
-        {roleLabel && <span style={roleBadgeStyle(roleLabel)}>{roleLabel}</span>}
-        {isCurrentActor && <div style={currentActorHighlightStyle} />}
+        {roleLabel && <span className={roleBadgeClassName} style={roleBadgeStyle(roleLabel)}>{roleLabel}</span>}
+        {isCurrentActor && <div className={currentActorHighlightClassName} style={currentActorHighlightStyle} />}
         {showStatusOverlay && (
-          <div style={status === 'WINNER' ? winnerOverlayStyle : statusOverlayStyle}>
+          <div className={status === 'WINNER' ? winnerOverlayClassName : statusOverlayClassName} style={status === 'WINNER' ? winnerOverlayStyle : statusOverlayStyle}>
             {status === 'WINNER' && winnerInfo ? (
               <>
                 <span style={winnerHandRankStyle}>{formatHandRank(winnerInfo.handRank)}</span>
@@ -386,7 +393,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
         {isMe ? (
           // Current user - show actual hole cards if available
           holeCards.length > 0 && (
-            <div style={cardsContainerStyle}>
+            <div className="seat-cards-container" style={cardsContainerStyle}>
               {holeCards.map((cardStr, index) => {
                 const src = getCardSrc(cardStr);
                 if (!src) return null;
@@ -395,6 +402,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
                     key={index}
                     src={src}
                     alt={`Card ${index + 1}`}
+                    className="seat-card"
                     style={cardStyle(index, holeCards.length)}
                   />
                 );
@@ -403,10 +411,11 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
           )
         ) : (
           // Other players - always show face-down card backs
-          <div style={cardsContainerStyle}>
+          <div className="seat-cards-container" style={cardsContainerStyle}>
             {[0, 1].map((index) => (
               <div
                 key={index}
+                className="seat-card-slot"
                 style={emptyCardSlotStyle(index, 2)}
               >
                 <div style={cardBackPatternStyle} />
@@ -415,24 +424,24 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
             ))}
           </div>
         )}
-        <div style={chipsLineStyle}>
-          <img src={CHIP_ICON} alt="" style={chipIconStyle} />
-          <span style={chipsTextStyle}>{chips.toLocaleString()}</span>
+        <div className="seat-chips-line" style={chipsLineStyle}>
+          <img src={CHIP_ICON} alt="" className="seat-chip-icon" style={chipIconStyle} />
+          <span className="seat-chips-text" style={chipsTextStyle}>{chips.toLocaleString()}</span>
         </div>
-        <img src={avatarSrc} alt="" style={avatarStyle(isMe)} />
-        <span style={nameStripStyle}>
+        <img src={avatarSrc} alt="" className="seat-avatar" style={avatarStyle(isMe)} />
+        <span className="seat-name-strip" style={nameStripStyle}>
           {status === 'WINNER' && <span style={{ fontSize: 9, opacity: 0.9, marginRight: 4 }}>Winner </span>}
           {name}
         </span>
       </div>
       {showActionBubble && (
-        <div style={actionBubbleStyle}>
+        <div className={actionBubbleClassName} style={actionBubbleStyle}>
           {formatAction(lastAction)}
           <div style={actionBubbleArrowStyle} />
         </div>
       )}
       {isCurrentPlayer && (
-        <span style={{ padding: '2px 8px', background: '#ff9800', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
+        <span className="seat-your-turn" style={{ padding: '2px 8px', background: '#ff9800', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
           Your turn
         </span>
       )}

@@ -127,8 +127,8 @@ export default function Tables() {
   if (error) return <div style={{ padding: '2rem', color: 'red' }}>{error}</div>;
 
   return (
-    <div style={{ maxWidth: 640, margin: '2rem auto', padding: '0 1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+    <div className="tables-page">
+      <div className="tables-header">
         <h1>Tables</h1>
         <Link to="/table-config" style={{ padding: '0.5rem 1rem', background: '#333', color: '#fff', textDecoration: 'none', borderRadius: 4 }}>
           New table config
@@ -144,7 +144,7 @@ export default function Tables() {
         <div style={{ marginBottom: '0.5rem', fontSize: 14, color: '#666' }}>
           Table ID: <strong>{joinLinksModal.tableId}</strong>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="modal-row" style={{ marginBottom: '1rem' }}>
           <div style={{ flex: 1 }}>
             <label htmlFor="currencySelect" style={{ display: 'block', marginBottom: '0.5rem', fontSize: 14 }}>
               Currency:
@@ -300,26 +300,14 @@ export default function Tables() {
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {tables.map((t) => (
-            <li
-              key={t.id}
-              style={{
-                padding: '1rem',
-                marginBottom: '0.5rem',
-                border: '1px solid #ddd',
-                borderRadius: 8,
-                background: '#fafafa',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
+            <li key={t.id} className="tables-list-item">
               <div>
                 <div style={{ fontWeight: 600, marginBottom: 4 }}>{t.id ?? '—'}</div>
                 <div style={{ fontSize: 14, color: '#555' }}>
                   Seats: {t.seatCount ?? '—'} · Min: {t.minPlayers ?? 2} · Blinds: {t.smallBlind ?? '—'}/{t.bigBlind ?? '—'}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="tables-list-item-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                 <Button onClick={() => setJoinLinksModal({ show: true, tableId: t.id, playerIds: '', currency: 'USD', mode: 'DEMO', links: [] })}>
                   Generate Join Links
                 </Button>

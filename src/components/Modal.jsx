@@ -5,6 +5,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = 400 }
       role="dialog"
       aria-modal="true"
       onClick={onClose}
+      className="modal-backdrop"
       style={{
         position: 'fixed',
         top: 0,
@@ -17,11 +18,11 @@ export default function Modal({ open, onClose, title, children, maxWidth = 400 }
         justifyContent: 'center',
         zIndex: 1000,
         overflow: 'auto',
-        padding: '2rem',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="modal-content"
         style={{
           background: '#fff',
           padding: '2rem',

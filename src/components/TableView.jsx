@@ -35,19 +35,13 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
     position: 'relative',
     width: '100%',
     height: '100%',
-    minHeight: 320,
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingTop: '5vh',
   };
 
   const tableWrapperStyle = {
     position: 'relative',
-    width: '80vw',
-    height: '65vh',
-    maxWidth: '80vw',
-    maxHeight: '70vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -145,15 +139,15 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
   const getWinnerInfo = (seatIndex) => lastHandWinInfo.find((w) => w && Number(w.seatIndex) === seatIndex) ?? null;
 
   return (
-    <div style={containerStyle}>
-      <div style={tableWrapperStyle}>
+    <div className="table-view-container" style={containerStyle}>
+      <div className="table-view-wrapper" style={tableWrapperStyle}>
         <img src="/poker_table.png" alt="Poker table" style={tableImgStyle} />
-        <div style={centerLayerStyle}>
+        <div className="table-view-center-cards" style={centerLayerStyle}>
           {[0, 1, 2, 3, 4].map((i) => {
             const card = communityCards[i];
             const src = card ? getCardSrc(card) : null;
             return (
-              <div key={i} style={emptySlotStyle}>
+              <div key={i} className="community-card-slot" style={emptySlotStyle}>
                 {src ? (
                   <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 4 }} />
                 ) : null}
