@@ -201,11 +201,11 @@ export default function Tables() {
             onClick={() => {
               const playerIds = joinLinksModal.playerIds.split(/[\n,]+/).map((id) => id.trim()).filter(Boolean);
               if (playerIds.length === 0) return;
-              const params = new URLSearchParams();
-              params.set('currency', joinLinksModal.currency);
-              params.set('mode', joinLinksModal.mode);
-              const queryString = params.toString();
-              setJoinLinksModal((prev) => ({ ...prev, links: playerIds.map((playerId) => ({ playerId, url: `/play/${prev.tableId}/${playerId}?${queryString}` })) }));
+              const currencyVal = (joinLinksModal.currency || 'PC').toUpperCase();
+              const modeVal = (joinLinksModal.mode || 'DEMO').toUpperCase();
+              const tokenVal = modeVal === 'REAL' ? (joinLinksModal.encryptedToken || '1234') : 'null';
+              const query = new URLSearchParams({ currency: currencyVal, mode: modeVal, token: tokenVal });
+              setJoinLinksModal((prev) => ({ ...prev, links: playerIds.map((playerId) => ({ playerId, url: `/play/${prev.tableId}/${playerId}?${query.toString()}` })) }));
             }}
           >
             Generate Links

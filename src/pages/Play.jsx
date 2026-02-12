@@ -14,12 +14,17 @@ import { setGameSession, clearGameSession } from '../store/gameSessionSlice';
 const joinPromiseByKey = {};
 
 export default function Play() {
-  const { tableId, playerId } = useParams();
+  const { tableId, playerId, currency: currencyParam, mode: modeParam, token: tokenParam } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const currency = searchParams.get('currency') || 'PC';
-  const modeParam = (searchParams.get('mode') || 'demo').toLowerCase();
-  const mode = modeParam === 'real' ? 'real' : 'demo';
+  const currency = currencyParam || searchParams.get('currency') || 'PC';
+  const modeFromParam = modeParam?.toUpperCase();
+  const modeFromQuery = searchParams.get('mode')?.toUpperCase();
+  const modeFromUrl = modeFromParam === 'REAL' || modeFromParam === 'DEMO' ? modeFromParam : (modeFromQuery === 'REAL' || modeFromQuery === 'DEMO' ? modeFromQuery : null);
+  const tokenFromPathOrQuery = (tokenParam != null && tokenParam !== '' && tokenParam !== 'null') ? tokenParam : (searchParams.get('token') || null);
+  const isDemo = modeFromUrl === 'DEMO' || tokenParam === 'null' || (tokenParam == null && !searchParams.get('token'));
+  const mode = modeFromUrl || (isDemo ? 'DEMO' : 'REAL');
+  const tokenForJoin = mode === 'REAL' ? (tokenFromPathOrQuery || '1234') : null;
   const dispatch = useDispatch();
   const player = useSelector((state) => state.player);
   const gameSession = useSelector((state) => state.gameSession);
@@ -34,13 +39,14 @@ export default function Play() {
       return;
     }
 
-    const key = `${tableId}\n${playerId}\n${currency}\n${mode}`;
+    const key = `${tableId}\n${playerId}\n${currency}\n${mode}\n${tokenForJoin ?? ''}`;
     if (!joinPromiseByKey[key]) {
       joinPromiseByKey[key] = axios
         .get(getTableByIdUrl(tableId))
         .then((configRes) => {
           const config = configRes.data?.data || configRes.data;
-          return axios.post(getJoinGameUrl(tableId, playerId, currency, mode.toUpperCase())).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
+          const body = { playerToken: tokenForJoin, currency, mode: mode.toUpperCase() };
+          return axios.post(getJoinGameUrl(tableId, playerId), body).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
         })
         .finally(() => { delete joinPromiseByKey[key]; });
     }
@@ -72,7 +78,7 @@ export default function Play() {
       dispatch(clearPlayer());
       dispatch(clearGameSession());
     };
-  }, [tableId, playerId, currency, mode, dispatch]);
+  }, [tableId, playerId, currency, mode, tokenForJoin, dispatch]);
 
   const pageStyle = {
     position: 'fixed',
@@ -123,7 +129,7 @@ export default function Play() {
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <div className="play-status-bar" style={{ ...overlayStyle }}>
           <div className="play-badges" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <span style={{ padding: '0.25rem 0.6rem', background: mode === 'real' ? 'rgba(244,67,54,0.9)' : 'rgba(156,39,176,0.9)', color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>
+            <span style={{ padding: '0.25rem 0.6rem', background: mode === 'REAL' ? 'rgba(244,67,54,0.9)' : 'rgba(156,39,176,0.9)', color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>
               {mode.toUpperCase()}
             </span>
             <span style={{ padding: '0.25rem 0.6rem', background: 'rgba(255,152,0,0.9)', color: '#fff', borderRadius: 6, fontSize: 13 }}>

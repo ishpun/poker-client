@@ -10,6 +10,7 @@ function App() {
         <Route path="/" element={<Navigate to="/tables" replace />} />
         <Route path="/tables" element={<Tables />} />
         <Route path="/table-config" element={<TableConfig />} />
+        <Route path="/play/:tableId/:playerId/:currency/:mode/:token" element={<Play />} />
         <Route path="/play/:tableId/:playerId" element={<Play />} />
       </Routes>
     </BrowserRouter>
