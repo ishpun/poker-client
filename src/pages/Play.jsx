@@ -17,14 +17,16 @@ export default function Play() {
   const { tableId, playerId, currency: currencyParam, mode: modeParam, token: tokenParam } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const currency = currencyParam || searchParams.get('currency') || 'PC';
-  const modeFromParam = modeParam?.toUpperCase();
-  const modeFromQuery = searchParams.get('mode')?.toUpperCase();
-  const modeFromUrl = modeFromParam === 'REAL' || modeFromParam === 'DEMO' ? modeFromParam : (modeFromQuery === 'REAL' || modeFromQuery === 'DEMO' ? modeFromQuery : null);
-  const tokenFromPathOrQuery = (tokenParam != null && tokenParam !== '' && tokenParam !== 'null') ? tokenParam : (searchParams.get('token') || null);
-  const isDemo = modeFromUrl === 'DEMO' || tokenParam === 'null' || (tokenParam == null && !searchParams.get('token'));
-  const mode = modeFromUrl || (isDemo ? 'DEMO' : 'REAL');
-  const tokenForJoin = mode === 'REAL' ? (tokenFromPathOrQuery || '1234') : null;
+  const currencyFromQuery = searchParams.get('currency');
+  const modeFromQuery = searchParams.get('mode');
+  const tokenFromQuery = searchParams.get('token');
+  const currency = (currencyParam || currencyFromQuery || 'PC').toUpperCase();
+  const modeFromPath = modeParam?.toUpperCase();
+  const modeFromQ = modeFromQuery?.toUpperCase();
+  const mode = (modeFromPath === 'REAL' || modeFromPath === 'DEMO' ? modeFromPath : null) ?? (modeFromQ === 'REAL' || modeFromQ === 'DEMO' ? modeFromQ : null) ?? 'DEMO';
+  const tokenRaw = (tokenParam != null && tokenParam !== '') ? tokenParam : tokenFromQuery;
+  const isDemo = mode === 'DEMO' || tokenRaw === 'null' || tokenRaw === '' || tokenRaw == null;
+  const tokenForJoin = isDemo ? null : (tokenRaw && tokenRaw !== 'null' ? tokenRaw : '1234');
   const dispatch = useDispatch();
   const player = useSelector((state) => state.player);
   const gameSession = useSelector((state) => state.gameSession);
@@ -39,14 +41,14 @@ export default function Play() {
       return;
     }
 
-    const key = `${tableId}\n${playerId}\n${currency}\n${mode}\n${tokenForJoin ?? ''}`;
+    const key = `${tableId}\n${playerId}\n${currency}\n${mode}\n${String(tokenForJoin ?? '')}`;
     if (!joinPromiseByKey[key]) {
+      const joinBody = { playerToken: tokenForJoin, currency, mode };
       joinPromiseByKey[key] = axios
         .get(getTableByIdUrl(tableId))
         .then((configRes) => {
           const config = configRes.data?.data || configRes.data;
-          const body = { playerToken: tokenForJoin, currency, mode: mode.toUpperCase() };
-          return axios.post(getJoinGameUrl(tableId, playerId), body).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
+          return axios.post(getJoinGameUrl(tableId, playerId), joinBody).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
         })
         .finally(() => { delete joinPromiseByKey[key]; });
     }
