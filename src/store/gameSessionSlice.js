@@ -15,6 +15,8 @@ const initialState = {
   canStartHand: false,
   allowedActions: [],
   lastHandWinInfo: [],
+  turnStartedAt: null,
+  turnTimerSeconds: null,
 };
 
 const gameSessionSlice = createSlice({
@@ -37,6 +39,8 @@ const gameSessionSlice = createSlice({
       if (payload.canStartHand !== undefined) state.canStartHand = Boolean(payload.canStartHand);
       if (payload.allowedActions !== undefined) state.allowedActions = Array.isArray(payload.allowedActions) ? payload.allowedActions : [];
       if (payload.lastHandWinInfo !== undefined) state.lastHandWinInfo = Array.isArray(payload.lastHandWinInfo) ? payload.lastHandWinInfo : [];
+      if (payload.turnStartedAt !== undefined) state.turnStartedAt = payload.turnStartedAt ?? null;
+      if (payload.turnTimerSeconds !== undefined) state.turnTimerSeconds = payload.turnTimerSeconds ?? null;
     },
     clearGameSession: () => initialState,
   },

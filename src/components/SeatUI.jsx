@@ -1,3 +1,5 @@
+import TurnCountdown from './TurnCountdown';
+
 const CHIP_ICON = '/assests/practiceChip.png';
 
 function toTitleCase(str) {
@@ -338,7 +340,7 @@ function getActionFromSeat(seat) {
   return null;
 }
 
-export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
+export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedAt, turnTimerSeconds }) {
   const filled = seat && seat.playerId;
   const avatarSrc = filled && seat.playerAvatar ? `/assests/avatars/avtr_${seat.playerAvatar}.svg` : null;
   const holeCards = seat?.holeCards ?? [];
@@ -416,7 +418,12 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo }) {
           <img src={CHIP_ICON} alt="" className="seat-chip-icon" style={chipIconStyle} />
           <span className="seat-chips-text" style={chipsTextStyle}>{chips.toLocaleString()}</span>
         </div>
-        <img src={avatarSrc} alt="" className="seat-avatar" style={avatarStyle(isMe)} />
+        <div style={{ position: 'relative', width: avatarSize + 8, height: avatarSize + 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          {isCurrentActor && turnTimerSeconds != null && turnTimerSeconds > 0 && (
+            <TurnCountdown turnStartedAt={turnStartedAt} turnTimerSeconds={turnTimerSeconds} avatarSize={avatarSize} />
+          )}
+          <img src={avatarSrc} alt="" className="seat-avatar" style={avatarStyle(isMe)} />
+        </div>
         <span className="seat-name-strip" style={nameStripStyle}>
           {status === 'WINNER' && <span style={{ fontSize: 9, opacity: 0.9, marginRight: 4 }}>Winner </span>}
           {name}
