@@ -56,6 +56,8 @@ export default function Tables() {
         smallBlind: t.smallBlind ?? 10,
         bigBlind: t.bigBlind ?? 20,
         turnTimer: t.turnTimer ?? 0,
+        isBotGame: t.isBotGame ?? false,
+        maxBotCount: t.maxBotCount ?? '',
       },
       errors: {},
       saving: false,
@@ -78,7 +80,7 @@ export default function Tables() {
       ...prev,
       form: {
         ...prev.form,
-        [name]: name === 'tableName' ? value : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))),
+        [name]: name === 'isBotGame' ? Boolean(value) : (name === 'maxBotCount' ? (value === '' ? '' : Number(value)) : (name === 'tableName' ? value : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))))),
       },
       errors: { ...prev.errors, [name]: null },
     }));
@@ -99,6 +101,12 @@ export default function Tables() {
     if (!next.bigBlind && bigBlind < smallBlind) next.bigBlind = 'Big blind must be ≥ small blind';
     const turnTimer = Number(form.turnTimer);
     if (isNaN(turnTimer) || turnTimer < 0) next.turnTimer = 'Turn timer must be ≥ 0';
+    if (form.isBotGame) {
+      const maxBot = form.maxBotCount === '' ? NaN : Number(form.maxBotCount);
+      const seatCountNum = Number(form.seatCount);
+      if (isNaN(maxBot) || maxBot < 1) next.maxBotCount = 'Required when Bot game is enabled (min 1)';
+      else if (!isNaN(seatCountNum) && maxBot > seatCountNum) next.maxBotCount = `Cannot exceed seat count (${seatCountNum})`;
+    }
     setEditModal((prev) => ({ ...prev, errors: next }));
     return Object.keys(next).length === 0;
   };
@@ -116,6 +124,8 @@ export default function Tables() {
       smallBlind: Number(form.smallBlind),
       bigBlind: Number(form.bigBlind),
       turnTimer: Number(form.turnTimer) || 0,
+      isBotGame: Boolean(form.isBotGame),
+      maxBotCount: form.isBotGame ? Number(form.maxBotCount) || 0 : null,
     };
     setEditModal((prev) => ({ ...prev, saving: true }));
     try {
@@ -298,6 +308,30 @@ export default function Tables() {
                 onChange={(e) => updateEditForm('turnTimer', e.target.value)}
                 error={editModal.errors.turnTimer}
               />
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={editModal.form.isBotGame}
+                    onChange={(e) => updateEditForm('isBotGame', e.target.checked)}
+                  />
+                  <span>Bot game</span>
+                </label>
+              </div>
+              {editModal.form.isBotGame && (
+                <FormField
+                  id="editMaxBotCount"
+                  label="Max bot count (required)"
+                  name="maxBotCount"
+                  type="number"
+                  min={1}
+                  max={editModal.form.seatCount || 10}
+                  value={editModal.form.maxBotCount}
+                  onChange={(e) => updateEditForm('maxBotCount', e.target.value)}
+                  error={editModal.errors.maxBotCount}
+                  placeholder="e.g. 2"
+                />
+              )}
               {editModal.message && (
                 <p style={{ color: editModal.message === 'Saved.' ? 'green' : 'red', marginBottom: '1rem', fontSize: 14 }}>{editModal.message}</p>
               )}
@@ -332,8 +366,11 @@ export default function Tables() {
             <li key={t.id} className="tables-list-item">
               <div>
                 <div style={{ fontWeight: 600, marginBottom: 4 }}>{t.id ?? '—'}</div>
-                <div style={{ fontSize: 14, color: '#555' }}>
-                  Seats: {t.seatCount ?? '—'} · Min: {t.minPlayers ?? 2} · Blinds: {t.smallBlind ?? '—'}/{t.bigBlind ?? '—'}
+                <div style={{ fontSize: 14, color: '#555', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span>Seats: {t.seatCount ?? '—'} · Min: {t.minPlayers ?? 2} · Blinds: {t.smallBlind ?? '—'}/{t.bigBlind ?? '—'}</span>
+                  {t.isBotGame && (
+                    <span style={{ padding: '2px 6px', background: '#4caf50', color: '#fff', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>Bot game</span>
+                  )}
                 </div>
               </div>
               <div className="tables-list-item-actions" style={{ display: 'flex', gap: '0.5rem' }}>

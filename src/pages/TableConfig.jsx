@@ -12,6 +12,8 @@ const defaultValues = {
   smallBlind: 10,
   bigBlind: 20,
   turnTimer: 0,
+  isBotGame: false,
+  maxBotCount: '',
 };
 
 export default function TableConfig() {
@@ -22,10 +24,10 @@ export default function TableConfig() {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === 'tableName' ? value : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))),
+      [name]: type === 'checkbox' ? checked : (name === 'tableName' ? value : (name === 'maxBotCount' ? (value === '' ? '' : Number(value)) : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))))),
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
@@ -50,6 +52,12 @@ export default function TableConfig() {
     }
     const turnTimer = Number(form.turnTimer);
     if (isNaN(turnTimer) || turnTimer < 0) next.turnTimer = 'Turn timer must be ≥ 0';
+    if (form.isBotGame) {
+      const maxBot = form.maxBotCount === '' ? NaN : Number(form.maxBotCount);
+      const seatCountNum = Number(form.seatCount);
+      if (isNaN(maxBot) || maxBot < 1) next.maxBotCount = 'Required when Bot game is enabled (min 1)';
+      else if (!isNaN(seatCountNum) && maxBot > seatCountNum) next.maxBotCount = `Cannot exceed seat count (${seatCountNum})`;
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -67,6 +75,8 @@ export default function TableConfig() {
       smallBlind: Number(form.smallBlind),
       bigBlind: Number(form.bigBlind),
       turnTimer: Number(form.turnTimer) || 0,
+      isBotGame: Boolean(form.isBotGame),
+      maxBotCount: form.isBotGame ? Number(form.maxBotCount) || 0 : null,
     };
 
     setLoading(true);
@@ -92,6 +102,26 @@ export default function TableConfig() {
         <FormField id="smallBlind" label="Small blind" name="smallBlind" type="number" min={0} value={form.smallBlind} onChange={handleChange} error={errors.smallBlind} />
         <FormField id="bigBlind" label="Big blind" name="bigBlind" type="number" min={0} value={form.bigBlind} onChange={handleChange} error={errors.bigBlind} />
         <FormField id="turnTimer" label="Turn timer (seconds, 0 = off)" name="turnTimer" type="number" min={0} value={form.turnTimer} onChange={handleChange} error={errors.turnTimer} />
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
+            <input type="checkbox" name="isBotGame" checked={form.isBotGame} onChange={handleChange} />
+            <span>Bot game</span>
+          </label>
+        </div>
+        {form.isBotGame && (
+          <FormField
+            id="maxBotCount"
+            label="Max bot count (required for bot game)"
+            name="maxBotCount"
+            type="number"
+            min={1}
+            max={form.seatCount || 10}
+            value={form.maxBotCount}
+            onChange={handleChange}
+            error={errors.maxBotCount}
+            placeholder="e.g. 2"
+          />
+        )}
         {message.text && (
           <p style={{ color: message.type === 'error' ? 'red' : 'green', marginBottom: '1rem' }}>{message.text}</p>
         )}
