@@ -11,6 +11,17 @@ import ActionButtons from '../components/ActionButtons';
 import { setPlayer, clearPlayer } from '../store/playerSlice';
 import { setGameSession, clearGameSession } from '../store/gameSessionSlice';
 
+const getApiBase = () => {
+  const host = process.env.REACT_APP_API_HOST;
+  if (host) return host.replace(/\/api\/game\/?$/, '');
+  return window.location.origin;
+};
+
+const getLeaveGameUrl = (tableId, playerId) => {
+  const base = getApiBase();
+  return `${base}/api/game/tables/${tableId}/players/${playerId}/leave`;
+};
+
 const joinPromiseByKey = {};
 
 export default function Play() {
@@ -33,6 +44,8 @@ export default function Play() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tableConfig, setTableConfig] = useState(null);
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveMessage, setLeaveMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (!tableId || !playerId) {
@@ -81,6 +94,24 @@ export default function Play() {
       dispatch(clearGameSession());
     };
   }, [tableId, playerId, currency, mode, tokenForJoin, dispatch]);
+
+  const handleLeaveGame = async () => {
+    setLeaveLoading(true);
+    setLeaveMessage({ type: '', text: '' });
+    
+    try {
+      const url = `${getLeaveGameUrl(tableId, playerId)}?sessionId=${gameSession.sessionId}`;
+      await axios.post(url);
+      setLeaveMessage({ type: 'success', text: 'Left game successfully.' });
+      // Navigate back to tables after a short delay
+      setTimeout(() => navigate('/tables'), 1000);
+    } catch (err) {
+      const text = err.response?.data?.message || err.message || 'Failed to leave game.';
+      setLeaveMessage({ type: 'error', text });
+    } finally {
+      setLeaveLoading(false);
+    }
+  };
 
   const pageStyle = {
     position: 'fixed',
@@ -151,7 +182,22 @@ export default function Play() {
               </>
             )}
           </div>
-          <Button onClick={() => navigate('/tables')}>Back to Tables</Button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {leaveMessage.text && (
+              <span style={{ color: leaveMessage.type === 'error' ? '#ffcdd2' : '#c8e6c9', fontSize: 12, marginRight: '0.5rem' }}>
+                {leaveMessage.text}
+              </span>
+            )}
+            <Button 
+              variant="danger" 
+              onClick={handleLeaveGame}
+              disabled={leaveLoading}
+              style={{ marginRight: '0.5rem' }}
+            >
+              {leaveLoading ? 'Leaving…' : 'Leave Game'}
+            </Button>
+            <Button onClick={() => navigate('/tables')}>Back to Tables</Button>
+          </div>
         </div>
         <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <TableView tableConfig={tableConfig} gameSession={gameSession} myPlayerId={playerId} currentPlayer={player.playerId ? player : null} />
