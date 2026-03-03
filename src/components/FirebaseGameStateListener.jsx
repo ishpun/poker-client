@@ -7,16 +7,38 @@ import { getTableStateUrl } from '../api/tables';
 import { setPlayer } from '../store/playerSlice';
 import { setGameSession } from '../store/gameSessionSlice';
 
+const SYNC_TIMEOUT_MS = 15000;
+
+function isShouldSyncTrue(data) {
+  if (!data || data.shouldSync == null) return false;
+  return data.shouldSync === true || data.shouldSync === 'true';
+}
+
 export default function FirebaseGameStateListener({ sessionId, tableId, playerId, currency, mode }) {
   const dispatch = useDispatch();
   const syncInProgressRef = useRef(false);
+  const syncTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!sessionId || !tableId || !playerId) return;
 
+    const clearSyncTimeout = () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = null;
+      }
+    };
+
     const fetchAndUpdateState = () => {
+      clearSyncTimeout();
+      syncTimeoutRef.current = setTimeout(() => {
+        syncInProgressRef.current = false;
+        syncTimeoutRef.current = null;
+      }, SYNC_TIMEOUT_MS);
+
+      const url = getTableStateUrl(tableId, playerId, sessionId, currency, mode);
       axios
-        .get(getTableStateUrl(tableId, playerId, sessionId, currency, mode))
+        .get(url)
         .then((res) => {
           const raw = res.data?.data ?? res.data;
           if (raw) {
@@ -29,49 +51,43 @@ export default function FirebaseGameStateListener({ sessionId, tableId, playerId
           console.error('Failed to fetch game state:', err);
         })
         .finally(() => {
+          clearSyncTimeout();
           syncInProgressRef.current = false;
         });
     };
 
     const gameStateRef = ref(realTimeDB, `poker/gamestate/${sessionId}`);
 
+    const runSync = () => {
+      if (syncInProgressRef.current) return;
+      syncInProgressRef.current = true;
+      const isActiveBrowser = document.hasFocus() && document.visibilityState === 'visible';
+      if (isActiveBrowser) {
+        update(gameStateRef, { shouldSync: false }).catch(() => {});
+      }
+      fetchAndUpdateState();
+    };
+
     const handleSnapshot = (snapshot) => {
       const data = snapshot.val();
-      if (!data) return;
-      
-      if (data.shouldSync === true) {
-        if (syncInProgressRef.current) return;
-        
-        syncInProgressRef.current = true;
-        
-        const isActiveBrowser = document.hasFocus() && document.visibilityState === 'visible';
-        if (isActiveBrowser) {
-          update(gameStateRef, { shouldSync: false }).catch(() => {});
-        }
-        
-        fetchAndUpdateState();
-      }
+      if (!isShouldSyncTrue(data)) return;
+      runSync();
     };
 
     onValue(gameStateRef, handleSnapshot);
-    
+
     get(gameStateRef)
       .then((snapshot) => {
         const data = snapshot.val();
-        if (data && data.shouldSync === true && !syncInProgressRef.current) {
-          syncInProgressRef.current = true;
-          
-          const isActiveBrowser = document.hasFocus() && document.visibilityState === 'visible';
-          if (isActiveBrowser) {
-            update(gameStateRef, { shouldSync: false }).catch(() => {});
-          }
-          
-          fetchAndUpdateState();
-        }
+        if (isShouldSyncTrue(data)) runSync();
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Firebase game state get failed:', err);
+      });
+
     return () => {
       off(gameStateRef, handleSnapshot);
+      clearSyncTimeout();
       syncInProgressRef.current = false;
     };
   }, [sessionId, tableId, playerId, currency, mode, dispatch]);
