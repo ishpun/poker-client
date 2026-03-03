@@ -58,6 +58,8 @@ export default function Tables() {
         turnTimer: t.turnTimer ?? 0,
         isBotGame: t.isBotGame ?? false,
         maxBotCount: t.maxBotCount ?? '',
+        botJoinInterval: t.botJoinInterval ?? 10,
+        serviceCharge: t.serviceCharge ?? 12,
       },
       errors: {},
       saving: false,
@@ -76,11 +78,24 @@ export default function Tables() {
   };
 
   const updateEditForm = (name, value) => {
+    let processedValue;
+    if (name === 'isBotGame') {
+      processedValue = Boolean(value);
+    } else if (name === 'tableName') {
+      processedValue = value;
+    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge') {
+      processedValue = value === '' ? '' : Number(value);
+    } else if (name === 'turnTimer') {
+      processedValue = value === '' ? 0 : Number(value);
+    } else {
+      processedValue = value === '' ? '' : Number(value);
+    }
+    
     setEditModal((prev) => ({
       ...prev,
       form: {
         ...prev.form,
-        [name]: name === 'isBotGame' ? Boolean(value) : (name === 'maxBotCount' ? (value === '' ? '' : Number(value)) : (name === 'tableName' ? value : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))))),
+        [name]: processedValue,
       },
       errors: { ...prev.errors, [name]: null },
     }));
@@ -106,6 +121,8 @@ export default function Tables() {
       const seatCountNum = Number(form.seatCount);
       if (isNaN(maxBot) || maxBot < 1) next.maxBotCount = 'Required when Bot game is enabled (min 1)';
       else if (!isNaN(seatCountNum) && maxBot > seatCountNum) next.maxBotCount = `Cannot exceed seat count (${seatCountNum})`;
+      const botJoinInterval = form.botJoinInterval === '' ? NaN : Number(form.botJoinInterval);
+      if (isNaN(botJoinInterval) || botJoinInterval < 1) next.botJoinInterval = 'Bot join interval must be at least 1 second';
     }
     setEditModal((prev) => ({ ...prev, errors: next }));
     return Object.keys(next).length === 0;
@@ -126,6 +143,8 @@ export default function Tables() {
       turnTimer: Number(form.turnTimer) || 0,
       isBotGame: Boolean(form.isBotGame),
       maxBotCount: form.isBotGame ? Number(form.maxBotCount) || 0 : null,
+      botJoinInterval: form.isBotGame ? Number(form.botJoinInterval) || null : null,
+      serviceCharge: Number(form.serviceCharge) || 12,
     };
     setEditModal((prev) => ({ ...prev, saving: true }));
     try {
@@ -308,6 +327,18 @@ export default function Tables() {
                 onChange={(e) => updateEditForm('turnTimer', e.target.value)}
                 error={editModal.errors.turnTimer}
               />
+              <FormField
+                id="editServiceCharge"
+                label="Service charge (%)"
+                type="number"
+                name="serviceCharge"
+                min={0}
+                max={100}
+                value={editModal.form.serviceCharge}
+                onChange={(e) => updateEditForm('serviceCharge', e.target.value)}
+                error={editModal.errors.serviceCharge}
+                placeholder="e.g. 12"
+              />
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
                   <input
@@ -319,18 +350,31 @@ export default function Tables() {
                 </label>
               </div>
               {editModal.form.isBotGame && (
-                <FormField
-                  id="editMaxBotCount"
-                  label="Max bot count (required)"
-                  name="maxBotCount"
-                  type="number"
-                  min={1}
-                  max={editModal.form.seatCount || 10}
-                  value={editModal.form.maxBotCount}
-                  onChange={(e) => updateEditForm('maxBotCount', e.target.value)}
-                  error={editModal.errors.maxBotCount}
-                  placeholder="e.g. 2"
-                />
+                <>
+                  <FormField
+                    id="editMaxBotCount"
+                    label="Max bot count (required)"
+                    name="maxBotCount"
+                    type="number"
+                    min={1}
+                    max={editModal.form.seatCount || 10}
+                    value={editModal.form.maxBotCount}
+                    onChange={(e) => updateEditForm('maxBotCount', e.target.value)}
+                    error={editModal.errors.maxBotCount}
+                    placeholder="e.g. 2"
+                  />
+                  <FormField
+                    id="editBotJoinInterval"
+                    label="Bot join interval (seconds)"
+                    name="botJoinInterval"
+                    type="number"
+                    min={1}
+                    value={editModal.form.botJoinInterval}
+                    onChange={(e) => updateEditForm('botJoinInterval', e.target.value)}
+                    error={editModal.errors.botJoinInterval}
+                    placeholder="e.g. 5"
+                  />
+                </>
               )}
               {editModal.message && (
                 <p style={{ color: editModal.message === 'Saved.' ? 'green' : 'red', marginBottom: '1rem', fontSize: 14 }}>{editModal.message}</p>

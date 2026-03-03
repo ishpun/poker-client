@@ -14,6 +14,8 @@ const defaultValues = {
   turnTimer: 0,
   isBotGame: false,
   maxBotCount: '',
+  botJoinInterval: 10,
+  serviceCharge: 12,
 };
 
 export default function TableConfig() {
@@ -25,9 +27,23 @@ export default function TableConfig() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let processedValue;
+    
+    if (type === 'checkbox') {
+      processedValue = checked;
+    } else if (name === 'tableName') {
+      processedValue = value;
+    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge') {
+      processedValue = value === '' ? '' : Number(value);
+    } else if (name === 'turnTimer') {
+      processedValue = value === '' ? 0 : Number(value);
+    } else {
+      processedValue = value === '' ? '' : Number(value);
+    }
+    
     setForm((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (name === 'tableName' ? value : (name === 'maxBotCount' ? (value === '' ? '' : Number(value)) : (name === 'turnTimer' ? (value === '' ? 0 : Number(value)) : (value === '' ? '' : Number(value))))),
+      [name]: processedValue,
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
@@ -57,6 +73,8 @@ export default function TableConfig() {
       const seatCountNum = Number(form.seatCount);
       if (isNaN(maxBot) || maxBot < 1) next.maxBotCount = 'Required when Bot game is enabled (min 1)';
       else if (!isNaN(seatCountNum) && maxBot > seatCountNum) next.maxBotCount = `Cannot exceed seat count (${seatCountNum})`;
+      const botJoinInterval = form.botJoinInterval === '' ? NaN : Number(form.botJoinInterval);
+      if (isNaN(botJoinInterval) || botJoinInterval < 1) next.botJoinInterval = 'Bot join interval must be at least 1 second';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -77,6 +95,8 @@ export default function TableConfig() {
       turnTimer: Number(form.turnTimer) || 0,
       isBotGame: Boolean(form.isBotGame),
       maxBotCount: form.isBotGame ? Number(form.maxBotCount) || 0 : null,
+      botJoinInterval: form.isBotGame ? Number(form.botJoinInterval) || null : null,
+      serviceCharge: Number(form.serviceCharge) || 12,
     };
 
     setLoading(true);
@@ -102,6 +122,7 @@ export default function TableConfig() {
         <FormField id="smallBlind" label="Small blind" name="smallBlind" type="number" min={0} value={form.smallBlind} onChange={handleChange} error={errors.smallBlind} />
         <FormField id="bigBlind" label="Big blind" name="bigBlind" type="number" min={0} value={form.bigBlind} onChange={handleChange} error={errors.bigBlind} />
         <FormField id="turnTimer" label="Turn timer (seconds, 0 = off)" name="turnTimer" type="number" min={0} value={form.turnTimer} onChange={handleChange} error={errors.turnTimer} />
+        <FormField id="serviceCharge" label="Service charge (%)" name="serviceCharge" type="number" min={0} max={100} value={form.serviceCharge} onChange={handleChange} error={errors.serviceCharge} placeholder="e.g. 12" />
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
             <input type="checkbox" name="isBotGame" checked={form.isBotGame} onChange={handleChange} />
@@ -109,18 +130,31 @@ export default function TableConfig() {
           </label>
         </div>
         {form.isBotGame && (
-          <FormField
-            id="maxBotCount"
-            label="Max bot count (required for bot game)"
-            name="maxBotCount"
-            type="number"
-            min={1}
-            max={form.seatCount || 10}
-            value={form.maxBotCount}
-            onChange={handleChange}
-            error={errors.maxBotCount}
-            placeholder="e.g. 2"
-          />
+          <>
+            <FormField
+              id="maxBotCount"
+              label="Max bot count (required for bot game)"
+              name="maxBotCount"
+              type="number"
+              min={1}
+              max={form.seatCount || 10}
+              value={form.maxBotCount}
+              onChange={handleChange}
+              error={errors.maxBotCount}
+              placeholder="e.g. 2"
+            />
+            <FormField
+              id="botJoinInterval"
+              label="Bot join interval (seconds)"
+              name="botJoinInterval"
+              type="number"
+              min={1}
+              value={form.botJoinInterval}
+              onChange={handleChange}
+              error={errors.botJoinInterval}
+              placeholder="e.g. 5"
+            />
+          </>
         )}
         {message.text && (
           <p style={{ color: message.type === 'error' ? 'red' : 'green', marginBottom: '1rem' }}>{message.text}</p>
