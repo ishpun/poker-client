@@ -14,13 +14,24 @@ function isShouldSyncTrue(data) {
   return data.shouldSync === true || data.shouldSync === 'true';
 }
 
+const DEBUG_FIREBASE = true; // set false in production
+
 export default function FirebaseGameStateListener({ sessionId, tableId, playerId, currency, mode }) {
   const dispatch = useDispatch();
   const syncInProgressRef = useRef(false);
   const syncTimeoutRef = useRef(null);
 
   useEffect(() => {
-    if (!realTimeDB || !sessionId || !tableId || !playerId) return;
+    if (!realTimeDB) {
+      if (DEBUG_FIREBASE) console.warn('[Firebase] realTimeDB is null – check firebase config');
+      return;
+    }
+    if (!sessionId || !tableId || !playerId) {
+      if (DEBUG_FIREBASE) console.log('[Firebase] skip listener: sessionId/tableId/playerId missing', { sessionId, tableId, playerId });
+      return;
+    }
+
+    if (DEBUG_FIREBASE) console.log('[Firebase] listening poker/gamestate/' + sessionId);
 
     const clearSyncTimeout = () => {
       if (syncTimeoutRef.current) {
@@ -70,7 +81,9 @@ export default function FirebaseGameStateListener({ sessionId, tableId, playerId
 
     const handleSnapshot = (snapshot) => {
       const data = snapshot.val();
+      if (DEBUG_FIREBASE) console.log('[Firebase] snapshot', data ? { shouldSync: data.shouldSync, updatedAt: data.updatedAt } : null);
       if (!isShouldSyncTrue(data)) return;
+      if (DEBUG_FIREBASE) console.log('[Firebase] shouldSync=true, fetching state');
       runSync();
     };
 
@@ -79,10 +92,11 @@ export default function FirebaseGameStateListener({ sessionId, tableId, playerId
     get(gameStateRef)
       .then((snapshot) => {
         const data = snapshot.val();
+        if (DEBUG_FIREBASE) console.log('[Firebase] initial get', data ? { shouldSync: data.shouldSync } : null);
         if (isShouldSyncTrue(data)) runSync();
       })
       .catch((err) => {
-        console.error('Firebase game state get failed:', err);
+        console.error('[Firebase] get failed:', err);
       });
 
     return () => {
