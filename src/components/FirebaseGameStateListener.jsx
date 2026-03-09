@@ -20,7 +20,7 @@ export default function FirebaseGameStateListener({ sessionId, tableId, playerId
   const syncTimeoutRef = useRef(null);
 
   useEffect(() => {
-    if (!sessionId || !tableId || !playerId) return;
+    if (!realTimeDB || !sessionId || !tableId || !playerId) return;
 
     const clearSyncTimeout = () => {
       if (syncTimeoutRef.current) {
