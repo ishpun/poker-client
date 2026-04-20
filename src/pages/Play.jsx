@@ -25,19 +25,13 @@ const getLeaveGameUrl = (tableId, playerId) => {
 const joinPromiseByKey = {};
 
 export default function Play() {
-  const { tableId, playerId, currency: currencyParam, mode: modeParam, token: tokenParam } = useParams();
+  const { tableId, playerId, currency: currencyParam, token: tokenParam, tenantId: tenantIdParam } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const currencyFromQuery = searchParams.get('currency');
-  const modeFromQuery = searchParams.get('mode');
-  const tokenFromQuery = searchParams.get('token');
-  const currency = (currencyParam || currencyFromQuery || 'PC').toUpperCase();
-  const modeFromPath = modeParam?.toUpperCase();
-  const modeFromQ = modeFromQuery?.toUpperCase();
-  const mode = (modeFromPath === 'REAL' || modeFromPath === 'DEMO' ? modeFromPath : null) ?? (modeFromQ === 'REAL' || modeFromQ === 'DEMO' ? modeFromQ : null) ?? 'DEMO';
-  const tokenRaw = (tokenParam != null && tokenParam !== '') ? tokenParam : tokenFromQuery;
-  const isDemo = mode === 'DEMO' || tokenRaw === 'null' || tokenRaw === '' || tokenRaw == null;
-  const tokenForJoin = isDemo ? null : (tokenRaw && tokenRaw !== 'null' ? tokenRaw : '1234');
+  const currency = (currencyParam || 'PC').toUpperCase();
+  const tenantId = tenantIdParam || '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9';
+  const tokenRaw = tokenParam || searchParams.get('token');
+  const tokenForJoin = (tokenRaw === 'null' || !tokenRaw) ? null : tokenRaw;
   const dispatch = useDispatch();
   const player = useSelector((state) => state.player);
   const gameSession = useSelector((state) => state.gameSession);
@@ -54,9 +48,9 @@ export default function Play() {
       return;
     }
 
-    const key = `${tableId}\n${playerId}\n${currency}\n${mode}\n${String(tokenForJoin ?? '')}`;
+    const key = `${tableId}\n${playerId}\n${currency}\n${tenantId}\n${String(tokenForJoin ?? '')}`;
     if (!joinPromiseByKey[key]) {
-      const joinBody = { playerToken: tokenForJoin, currency, mode };
+      const joinBody = { pToken: tokenForJoin, currency, tenantId };
       joinPromiseByKey[key] = axios
         .get(getTableByIdUrl(tableId))
         .then((configRes) => {
@@ -93,12 +87,12 @@ export default function Play() {
       dispatch(clearPlayer());
       dispatch(clearGameSession());
     };
-  }, [tableId, playerId, currency, mode, tokenForJoin, dispatch]);
+  }, [tableId, playerId, currency, tenantId, tokenForJoin, dispatch]);
 
   const handleLeaveGame = async () => {
     setLeaveLoading(true);
     setLeaveMessage({ type: '', text: '' });
-    
+
     try {
       const url = `${getLeaveGameUrl(tableId, playerId)}?sessionId=${gameSession.sessionId}`;
       await axios.post(url);
@@ -157,14 +151,11 @@ export default function Play() {
 
   return (
     <div className="play-page" style={{ ...pageStyle, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <FirebaseGameStateListener sessionId={gameSession?.sessionId} tableId={tableId} playerId={playerId} currency={currency} mode={mode.toUpperCase()} />
+      <FirebaseGameStateListener sessionId={gameSession?.sessionId} tableId={tableId} playerId={playerId} currency={currency} />
       <GameHeader tableConfig={tableConfig} tableId={tableId} sessionId={gameSession.sessionId} />
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <div className="play-status-bar" style={{ ...overlayStyle }}>
           <div className="play-badges" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <span style={{ padding: '0.25rem 0.6rem', background: mode === 'REAL' ? 'rgba(244,67,54,0.9)' : 'rgba(156,39,176,0.9)', color: '#fff', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>
-              {mode.toUpperCase()}
-            </span>
             <span style={{ padding: '0.25rem 0.6rem', background: 'rgba(255,152,0,0.9)', color: '#fff', borderRadius: 6, fontSize: 13 }}>
               {currency}
             </span>
@@ -188,8 +179,8 @@ export default function Play() {
                 {leaveMessage.text}
               </span>
             )}
-            <Button 
-              variant="danger" 
+            <Button
+              variant="danger"
               onClick={handleLeaveGame}
               disabled={leaveLoading}
               style={{ marginRight: '0.5rem' }}
@@ -209,7 +200,10 @@ export default function Play() {
             seatIndex={player.position}
             playerId={playerId}
             sessionId={gameSession.sessionId}
-            onActionSubmitted={() => {}}
+            tenantId={tenantId}
+            currency={currency}
+            pToken={tokenForJoin}
+            onActionSubmitted={() => { }}
           />
         )}
       </div>

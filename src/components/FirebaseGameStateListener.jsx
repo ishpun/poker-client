@@ -16,7 +16,7 @@ function isShouldSyncTrue(data) {
 
 const DEBUG_FIREBASE = true; // set false in production
 
-export default function FirebaseGameStateListener({ sessionId, tableId, playerId, currency, mode }) {
+export default function FirebaseGameStateListener({ sessionId, tableId, playerId, currency }) {
   const dispatch = useDispatch();
   const syncInProgressRef = useRef(false);
   const syncTimeoutRef = useRef(null);
@@ -47,7 +47,7 @@ export default function FirebaseGameStateListener({ sessionId, tableId, playerId
         syncTimeoutRef.current = null;
       }, SYNC_TIMEOUT_MS);
 
-      const url = getTableStateUrl(tableId, playerId, sessionId, currency, mode);
+      const url = getTableStateUrl(tableId, playerId, sessionId, currency);
       axios
         .get(url)
         .then((res) => {
@@ -104,7 +104,7 @@ export default function FirebaseGameStateListener({ sessionId, tableId, playerId
       clearSyncTimeout();
       syncInProgressRef.current = false;
     };
-  }, [sessionId, tableId, playerId, currency, mode, dispatch]);
+  }, [sessionId, tableId, playerId, currency, dispatch]);
 
   return null;
 }

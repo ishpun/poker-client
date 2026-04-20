@@ -163,7 +163,7 @@ const okButtonStyle = {
   flexShrink: 0,
 };
 
-export default function ActionButtons({ allowedActions, tableId, seatIndex, playerId, sessionId, onActionSubmitted }) {
+export default function ActionButtons({ allowedActions, tableId, seatIndex, playerId, sessionId, tenantId, currency, pToken, onActionSubmitted }) {
   const [sliderMode, setSliderMode] = useState(null);
   const [sliderAmount, setSliderAmount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -217,6 +217,9 @@ export default function ActionButtons({ allowedActions, tableId, seatIndex, play
         sessionId,
         playerId,
         tableId,
+        tenantId,
+        currency,
+        pToken,
       };
       
       const url = submitActionUrl();

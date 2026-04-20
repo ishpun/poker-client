@@ -20,7 +20,7 @@ export default function Tables() {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [joinLinksModal, setJoinLinksModal] = useState({ show: false, tableId: null, playerIds: '', currency: 'USD', mode: 'DEMO', links: [] });
+  const [joinLinksModal, setJoinLinksModal] = useState({ show: false, tableId: null, playerIds: '', currency: 'DEMO', tenantId: '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9', pToken: '123', links: [] });
   const [editModal, setEditModal] = useState({ show: false, table: null, form: null, errors: {}, saving: false, message: '' });
 
   const fetchTables = () => {
@@ -175,7 +175,7 @@ export default function Tables() {
 
       <Modal
         open={joinLinksModal.show}
-        onClose={() => setJoinLinksModal({ show: false, tableId: null, playerIds: '', currency: 'USD', mode: 'DEMO', links: [] })}
+        onClose={() => setJoinLinksModal({ show: false, tableId: null, playerIds: '', currency: 'DEMO', tenantId: '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9', pToken: '123', links: [] })}
         title="Generate Join Links"
         maxWidth={600}
       >
@@ -193,6 +193,7 @@ export default function Tables() {
               onChange={(e) => setJoinLinksModal((prev) => ({ ...prev, currency: e.target.value }))}
               style={{ width: '100%', padding: '0.5rem', fontSize: 14, border: '1px solid #ddd', borderRadius: 4 }}
             >
+              <option value="DEMO">DEMO</option>
               <option value="USD">USD</option>
               <option value="EUR">EUR</option>
               <option value="GBP">GBP</option>
@@ -201,18 +202,30 @@ export default function Tables() {
             </select>
           </div>
           <div style={{ flex: 1 }}>
-            <label htmlFor="modeSelect" style={{ display: 'block', marginBottom: '0.5rem', fontSize: 14 }}>
-              Mode:
+            <label htmlFor="tenantIdInput" style={{ display: 'block', marginBottom: '0.5rem', fontSize: 14 }}>
+              Tenant ID:
             </label>
-            <select
-              id="modeSelect"
-              value={joinLinksModal.mode}
-              onChange={(e) => setJoinLinksModal((prev) => ({ ...prev, mode: e.target.value }))}
+            <input
+              id="tenantIdInput"
+              type="text"
+              value={joinLinksModal.tenantId}
+              onChange={(e) => setJoinLinksModal((prev) => ({ ...prev, tenantId: e.target.value }))}
               style={{ width: '100%', padding: '0.5rem', fontSize: 14, border: '1px solid #ddd', borderRadius: 4 }}
-            >
-              <option value="DEMO">DEMO</option>
-              <option value="REAL">REAL</option>
-            </select>
+            />
+          </div>
+        </div>
+        <div className="modal-row" style={{ marginBottom: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="pTokenInput" style={{ display: 'block', marginBottom: '0.5rem', fontSize: 14 }}>
+              Player Token (pToken):
+            </label>
+            <input
+              id="pTokenInput"
+              type="text"
+              value={joinLinksModal.pToken}
+              onChange={(e) => setJoinLinksModal((prev) => ({ ...prev, pToken: e.target.value }))}
+              style={{ width: '100%', padding: '0.5rem', fontSize: 14, border: '1px solid #ddd', borderRadius: 4 }}
+            />
           </div>
         </div>
         <label htmlFor="playerIdsInput" style={{ display: 'block', marginBottom: '0.5rem', fontSize: 14 }}>
@@ -230,16 +243,21 @@ export default function Tables() {
             onClick={() => {
               const playerIds = joinLinksModal.playerIds.split(/[\n,]+/).map((id) => id.trim()).filter(Boolean);
               if (playerIds.length === 0) return;
-              const currencyVal = (joinLinksModal.currency || 'PC').toUpperCase();
-              const modeVal = (joinLinksModal.mode || 'DEMO').toUpperCase();
-              const tokenVal = modeVal === 'REAL' ? (joinLinksModal.encryptedToken || '1234') : 'null';
-              const query = new URLSearchParams({ currency: currencyVal, mode: modeVal, token: tokenVal });
-              setJoinLinksModal((prev) => ({ ...prev, links: playerIds.map((playerId) => ({ playerId, url: `/play/${prev.tableId}/${playerId}?${query.toString()}` })) }));
+              const currencyVal = (joinLinksModal.currency || 'DEMO').toUpperCase();
+              const tokenVal = (joinLinksModal.pToken === 'null' || !joinLinksModal.pToken) ? 'null' : joinLinksModal.pToken;
+              const tenantIdVal = joinLinksModal.tenantId || '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9';
+              setJoinLinksModal((prev) => ({
+                ...prev,
+                links: playerIds.map((playerId) => ({
+                  playerId,
+                  url: `/play/${prev.tableId}/${playerId}/${currencyVal}/${tokenVal}/${tenantIdVal}`
+                }))
+              }));
             }}
           >
             Generate Links
           </Button>
-          <Button variant="secondary" onClick={() => setJoinLinksModal({ show: false, tableId: null, playerIds: '', currency: 'USD', mode: 'DEMO', links: [] })}>
+          <Button variant="secondary" onClick={() => setJoinLinksModal({ show: false, tableId: null, playerIds: '', currency: 'DEMO', tenantId: '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9', pToken: '123', links: [] })}>
             Close
           </Button>
         </div>
@@ -418,7 +436,7 @@ export default function Tables() {
                 </div>
               </div>
               <div className="tables-list-item-actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                <Button onClick={() => setJoinLinksModal({ show: true, tableId: t.id, playerIds: '', currency: 'USD', mode: 'DEMO', links: [] })}>
+                <Button onClick={() => setJoinLinksModal({ show: true, tableId: t.id, playerIds: '', currency: 'DEMO', tenantId: '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9', pToken: '123', links: [] })}>
                   Generate Join Links
                 </Button>
                 <Button variant="warning" onClick={() => openEdit(t)}>Edit</Button>

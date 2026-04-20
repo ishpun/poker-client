@@ -19,13 +19,12 @@ export const getSessionUrl = (sessionId) => {
   return `${base}/api/game/sessions/${sessionId}`;
 };
 
-export const getTableStateUrl = (tableId, playerId, sessionId, currency, mode) => {
+export const getTableStateUrl = (tableId, playerId, sessionId, currency) => {
   const base = getApiBase();
   const params = new URLSearchParams();
   params.set('playerId', playerId);
   if (sessionId) params.set('sessionId', sessionId);
   if (currency) params.set('currency', currency);
-  if (mode) params.set('mode', mode);
   return `${base}/api/game/tables/${tableId}/state?${params.toString()}`;
 };
 
