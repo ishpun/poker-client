@@ -369,7 +369,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, tu
     <div className={wrapperClassName} style={wrapperStyle}>
       <div style={avatarWrapStyle}>
         {roleLabel && <span className={roleBadgeClassName} style={roleBadgeStyle(roleLabel)}>{roleLabel}</span>}
-        {isCurrentActor && <div className={currentActorHighlightClassName} style={currentActorHighlightStyle} />}
+        {isCurrentActor && !gameOver && <div className={currentActorHighlightClassName} style={currentActorHighlightStyle} />}
         {showStatusOverlay && (
           <div className={winnerInfo ? winnerOverlayClassName : statusOverlayClassName} style={winnerInfo ? winnerOverlayStyle : statusOverlayStyle}>
             {winnerInfo ? (
@@ -435,7 +435,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, tu
           <div style={actionBubbleArrowStyle} />
         </div>
       )}
-      {isCurrentPlayer && (
+      {isCurrentPlayer && !gameOver && (
         <span className="seat-your-turn" style={{ padding: '2px 8px', background: '#ff9800', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
           Your turn
         </span>
