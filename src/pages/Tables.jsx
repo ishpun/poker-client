@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { tablesApiUrl, getTableByIdUrl } from '../api/tables';
+import { getTablesUrl, getTableByIdUrl } from '../api/tables';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
 import FormField from '../components/FormField';
@@ -25,13 +25,13 @@ export default function Tables() {
 
   const fetchTables = () => {
     axios
-      .get(tablesApiUrl)
+      .get(getTablesUrl())
       .then((res) => setTables(normalizeTablesList(res)))
       .catch((err) => setError(err.response?.data?.message || err.message || 'Failed to fetch tables.'));
   };
 
   useEffect(() => {
-    if (!tablesFetchPromise) tablesFetchPromise = axios.get(tablesApiUrl);
+    if (!tablesFetchPromise) tablesFetchPromise = axios.get(getTablesUrl());
     const p = tablesFetchPromise;
     let cancelled = false;
     p.then((res) => {

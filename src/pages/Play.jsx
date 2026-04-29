@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { getJoinGameUrl, getTableByIdUrl } from '../api/tables';
+import { getJoinGameUrl, getTableByIdUrl, getTableStateUrl } from '../api/tables';
 import Button from '../components/Button';
 import GameHeader from '../components/GameHeader';
 import TableView from '../components/TableView';
@@ -278,6 +278,7 @@ export default function Play() {
     const key = `${tableId}\n${playerId}\n${currency}\n${tenantId}\n${String(tokenForJoin ?? '')}`;
     if (!joinPromiseByKey[key]) {
       const joinBody = { pToken: tokenForJoin, currency, tenantId };
+      console.log('[Join] Calling join API for', { tableId, playerId });
       joinPromiseByKey[key] = axios
         .get(getTableByIdUrl(tableId))
         .then((configRes) => {
@@ -285,18 +286,37 @@ export default function Play() {
           return axios.post(getJoinGameUrl(tableId, playerId), joinBody).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
         })
         .finally(() => { delete joinPromiseByKey[key]; });
+    } else {
+      console.log('[Join] Reusing in-flight join promise for', { tableId, playerId });
     }
 
     let cancelled = false;
     joinPromiseByKey[key]
       .then((data) => {
         if (!cancelled) {
+          console.log('[Join] Join SUCCESS');
           setTableConfig(data.tableConfig);
           const joinDataInner = data.joinData?.data ?? data.joinData;
           if (joinDataInner) {
+            // First set session info (like sessionId) to trigger Firebase listener
             dispatch(setGameSession(joinDataInner));
-            const mySeat = joinDataInner.mySeat ?? joinDataInner.seats?.find((s) => s.playerId === playerId);
-            if (mySeat) dispatch(setPlayer(mySeat));
+            
+            // IMMEDIATE STATE FETCH: Guarantee state is loaded right after join
+            if (joinDataInner.sessionId) {
+              const stateUrl = getTableStateUrl(tableId, playerId, joinDataInner.sessionId, currency);
+              console.log('[Join] Fetching full game state immediately after join...');
+              axios.get(stateUrl)
+                .then(stateRes => {
+                  const stateData = stateRes.data?.data ?? stateRes.data;
+                  if (stateData && !cancelled) {
+                    dispatch(setGameSession(stateData));
+                    const mySeat = stateData.mySeat ?? stateData.seats?.find((s) => s.playerId === playerId);
+                    if (mySeat) dispatch(setPlayer(mySeat));
+                    console.log('[Join] Initial full state loaded successfully');
+                  }
+                })
+                .catch(err => console.error('[Join] Failed to load initial state:', err));
+            }
           }
         }
       })
@@ -304,17 +324,21 @@ export default function Play() {
         if (!cancelled) {
           const msg = err.response?.data?.message || err.message;
           const fallback = String(err.config?.url || '').includes('join') ? 'Failed to join game.' : 'Failed to load table config.';
+          console.error('[Join] Join FAILED:', msg);
           setError(msg || fallback);
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+      });
 
     return () => {
       cancelled = true;
       dispatch(clearPlayer());
       dispatch(clearGameSession());
     };
-  }, [tableId, playerId, currency, tenantId, tokenForJoin, dispatch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tableId, playerId]);  // ← intentionally minimal deps; currency/token captured at mount
 
   const handleLeaveGame = async () => {
     setLeaveLoading(true);
@@ -421,7 +445,7 @@ export default function Play() {
         <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <TableView tableConfig={tableConfig} gameSession={gameSession} myPlayerId={playerId} currentPlayer={player.playerId ? player : null} />
         </div>
-        {hasGameSession && player.isCurrentActor && gameSession.allowedActions && gameSession.allowedActions.length > 0 && !['FOLDED', 'ALL_IN', 'QUIT'].includes((player.status || '').toUpperCase()) && (
+        {hasGameSession && !gameSession.gameOver && gameSession.status !== 'COMPLETED' && player.isCurrentActor && gameSession.allowedActions && gameSession.allowedActions.length > 0 && !['FOLDED', 'ALL_IN', 'QUIT'].includes((player.status || '').toUpperCase()) && (
           <ActionButtons
             allowedActions={gameSession.allowedActions}
             tableId={tableId}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { tablesApiUrl } from '../api/tables';
+import { getTablesUrl } from '../api/tables';
 import Button from '../components/Button';
 import FormField from '../components/FormField';
 
@@ -109,7 +109,7 @@ export default function TableConfig() {
 
     setLoading(true);
     try {
-      await axios.post(tablesApiUrl, payload);
+      await axios.post(getTablesUrl(), payload);
       setMessage({ type: 'success', text: 'Table config saved successfully.' });
       setForm(defaultValues);
     } catch (err) {

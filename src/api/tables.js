@@ -4,11 +4,10 @@ const getApiBase = () => {
   return window.location.origin;
 };
 
-export const tablesApiUrl = `${getApiBase()}/api/tables`;
+export const getTablesUrl = () => `${getApiBase()}/api/tables`;
 
-export const getTableByIdUrl = (tableId) => `${tablesApiUrl}/${tableId}`;
+export const getTableByIdUrl = (tableId) => `${getApiBase()}/api/tables/${tableId}`;
 
-/** Join URL without query params; send playerToken, currency, mode in POST body. Demo = playerToken null. */
 export const getJoinGameUrl = (tableId, playerId) => {
   const base = getApiBase();
   return `${base}/api/game/tables/${tableId}/players/${playerId}/join`;
