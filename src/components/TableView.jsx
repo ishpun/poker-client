@@ -85,7 +85,7 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
     flexShrink: 0,
   };
   const communityCards = Array.isArray(gameSession?.communityCards) ? gameSession.communityCards : [];
-  
+
   const parseCardString = (cardStr) => {
     if (!cardStr) return null;
     if (typeof cardStr === 'string' && cardStr.length >= 2) {
@@ -101,9 +101,9 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
 
   const getCardSrc = (card) => {
     if (!card) return null;
-    
+
     let rank, suit;
-    
+
     if (typeof card === 'string') {
       const parsed = parseCardString(card);
       if (!parsed) return null;
@@ -113,7 +113,7 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
       suit = (card.suit || card.suitId || '').toString();
       rank = card.rank ?? card.value ?? card.face ?? 0;
     }
-    
+
     if (!suit || !rank) return null;
     const suitMap = { H: 'Hearts', D: 'Diamonds', C: 'Clubs', S: 'Spades', hearts: 'Hearts', diamonds: 'Diamonds', clubs: 'Clubs', spades: 'Spades' };
     const folder = suitMap[suit.toUpperCase()] || suitMap[suit.toLowerCase()] || suit;
@@ -164,6 +164,7 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
                 winnerInfo={getWinnerInfo(i)}
                 turnStartedAt={gameSession?.turnStartedAt}
                 turnTimerSeconds={gameSession?.turnTimerSeconds}
+                serverTime={gameSession?.serverTime}
               />
             </div>
           ))}

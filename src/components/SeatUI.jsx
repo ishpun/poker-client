@@ -340,7 +340,7 @@ function getActionFromSeat(seat) {
   return null;
 }
 
-export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedAt, turnTimerSeconds }) {
+export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedAt, turnTimerSeconds, serverTime }) {
   const filled = seat && seat.playerId;
   const avatarSrc = filled && seat.playerAvatar ? `/assests/avatars/avtr_${seat.playerAvatar}.svg` : null;
   const holeCards = seat?.holeCards ?? [];
@@ -420,7 +420,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedA
         </div>
         <div style={{ position: 'relative', width: avatarSize + 8, height: avatarSize + 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {isCurrentActor && turnTimerSeconds != null && turnTimerSeconds > 0 && (
-            <TurnCountdown turnStartedAt={turnStartedAt} turnTimerSeconds={turnTimerSeconds} avatarSize={avatarSize} />
+            <TurnCountdown turnStartedAt={turnStartedAt} turnTimerSeconds={turnTimerSeconds} serverTime={serverTime} avatarSize={avatarSize} />
           )}
           <img src={avatarSrc} alt="" className="seat-avatar" style={avatarStyle(isMe)} />
         </div>

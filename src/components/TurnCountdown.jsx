@@ -14,7 +14,7 @@ import { useState, useEffect, useRef } from 'react';
 const AVATAR_SIZE_DEFAULT = 85;
 const RING_STROKE = 4;
 
-export default function TurnCountdown({ turnStartedAt, turnTimerSeconds, avatarSize = AVATAR_SIZE_DEFAULT }) {
+export default function TurnCountdown({ turnStartedAt, turnTimerSeconds, serverTime, avatarSize = AVATAR_SIZE_DEFAULT }) {
   const [remainingSeconds, setRemainingSeconds] = useState(null);
   const intervalRef = useRef(null);
 
@@ -24,25 +24,24 @@ export default function TurnCountdown({ turnStartedAt, turnTimerSeconds, avatarS
       return;
     }
 
+    let clockOffset = 0;
+    if (serverTime) {
+      const serverNow = new Date(serverTime).getTime();
+      const clientNow = Date.now();
+      clockOffset = serverNow - clientNow;
+    }
+
     const computeRemaining = () => {
       const startedAt = new Date(turnStartedAt).getTime();
-      const now = Date.now();
-      const elapsedSeconds = (now - startedAt) / 1000;
+      const adjustedNow = Date.now() + clockOffset;
+      const elapsedSeconds = (adjustedNow - startedAt) / 1000;
       return Math.max(0, Math.ceil(turnTimerSeconds - elapsedSeconds));
     };
 
     setRemainingSeconds(computeRemaining());
 
     intervalRef.current = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev == null) return null;
-        const next = prev - 1;
-        if (next <= 0 && intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-        return next <= 0 ? 0 : next;
-      });
+      setRemainingSeconds(computeRemaining());
     }, 1000);
 
     return () => {
@@ -51,12 +50,12 @@ export default function TurnCountdown({ turnStartedAt, turnTimerSeconds, avatarS
         intervalRef.current = null;
       }
     };
-  }, [turnStartedAt, turnTimerSeconds]);
+  }, [turnStartedAt, turnTimerSeconds, serverTime]);
 
   if (remainingSeconds == null || remainingSeconds < 0) return null;
 
   const totalSeconds = Number(turnTimerSeconds) || 1;
-  const progressPercent = totalSeconds > 0 ? (remainingSeconds / totalSeconds) * 100 : 0;
+  const progressPercent = (remainingSeconds / totalSeconds) * 100;
 
   const size = avatarSize + RING_STROKE * 2;
   const cx = size / 2;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
@@ -17,10 +17,7 @@ const getApiBase = () => {
   return window.location.origin;
 };
 
-const getLeaveGameUrl = (tableId, playerId) => {
-  const base = getApiBase();
-  return `${base}/api/game/tables/${tableId}/players/${playerId}/leave`;
-};
+
 
 const joinPromiseByKey = {};
 
@@ -41,6 +38,159 @@ export default function Play() {
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveMessage, setLeaveMessage] = useState({ type: '', text: '' });
 
+  const botJoinTimerStartedRef = useRef(false);
+  const botJoinTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    console.log("Bot Join Effect Triggered:", {
+      isBotGame: tableConfig?.isBotGame,
+      status: gameSession?.status,
+      botShouldJoinAt: gameSession?.botShouldJoinAt
+    });
+    if (tableConfig?.isBotGame &&
+      gameSession?.status === 'WAITING' && gameSession?.botShouldJoinAt) {
+      const filledSeats = gameSession.seats?.filter(s => s && s.playerId).length || 0;
+      const maxSeats = tableConfig?.seatCount || 6;
+
+      if (filledSeats < maxSeats) {
+        if (!botJoinTimerStartedRef.current) {
+          botJoinTimerStartedRef.current = true;
+
+          const targetTime = new Date(gameSession.botShouldJoinAt).getTime();
+          const delay = targetTime - Date.now();
+          console.log(`Scheduling bot join based on BE time in ${delay} ms`);
+
+          if (delay <= 0) {
+            (async () => {
+              try {
+                const base = getApiBase();
+                const url = `${base}/api/game/sessions/add-bot`;
+                console.log("Hitting Add Bot API (expired):", url);
+                await axios.post(url, { sessionId: gameSession.sessionId, playerId, tableId });
+              } catch (err) {
+                console.error("Failed to add bot:", err);
+              } finally {
+                botJoinTimerStartedRef.current = false;
+              }
+            })();
+          } else {
+            botJoinTimeoutRef.current = setTimeout(async () => {
+              try {
+                const base = getApiBase();
+                const url = `${base}/api/game/sessions/add-bot`;
+                console.log("Hitting Add Bot API:", url);
+                await axios.post(url, { sessionId: gameSession.sessionId, playerId, tableId });
+              } catch (err) {
+                console.error("Failed to add bot:", err);
+              } finally {
+                botJoinTimerStartedRef.current = false;
+                botJoinTimeoutRef.current = null;
+              }
+            }, delay);
+          }
+        }
+      } else {
+        if (botJoinTimeoutRef.current) {
+          clearTimeout(botJoinTimeoutRef.current);
+          botJoinTimeoutRef.current = null;
+        }
+        botJoinTimerStartedRef.current = false;
+      }
+    }
+  }, [tableConfig, gameSession, tableId, playerId]);
+
+  useEffect(() => {
+    return () => {
+      if (botJoinTimeoutRef.current) {
+        clearTimeout(botJoinTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const turnTimeoutRef = useRef(null);
+  const turnTimeoutScheduledRef = useRef(null);
+
+  useEffect(() => {
+    const currentActorSeat = gameSession?.seats?.find(s => s && (s.isCurrentActor === true || Number(s.position) === Number(gameSession.currentActorSeatIndex)));
+    const currentActorPlayerId = currentActorSeat?.playerId;
+
+    console.log("Turn Timeout Effect Triggered:", {
+      sessionId: gameSession?.sessionId,
+      currentActorPlayerId,
+      turnStartedAt: gameSession?.turnStartedAt,
+      turnTimerSeconds: gameSession?.turnTimerSeconds
+    });
+
+    if (
+      gameSession?.sessionId &&
+      currentActorPlayerId &&
+      (gameSession?.turnEndsAt || (gameSession?.turnStartedAt && gameSession?.turnTimerSeconds))
+    ) {
+      const turnEndsAt = gameSession.turnEndsAt 
+        ? new Date(gameSession.turnEndsAt).getTime() 
+        : (new Date(gameSession.turnStartedAt).getTime() + gameSession.turnTimerSeconds * 1000);
+      const turnKey = `${gameSession.sessionId}_${gameSession.turnEndsAt || gameSession.turnStartedAt}_${currentActorPlayerId}`;
+
+      if (turnTimeoutScheduledRef.current !== turnKey) {
+        turnTimeoutScheduledRef.current = turnKey;
+
+        let clockOffset = 0;
+        if (gameSession.serverTime) {
+          const serverNow = new Date(gameSession.serverTime).getTime();
+          const clientNow = Date.now();
+          clockOffset = serverNow - clientNow;
+        }
+
+        const adjustedNow = Date.now() + clockOffset;
+        const timeLeft = turnEndsAt - adjustedNow;
+
+        if (turnTimeoutRef.current) {
+          clearTimeout(turnTimeoutRef.current);
+        }
+
+        if (timeLeft <= 0) {
+          (async () => {
+            try {
+              const base = getApiBase();
+              const url = `${base}/api/game/sessions/timeout`;
+              console.log("Hitting Turn Timeout API (expired):", url);
+              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId });
+            } catch (err) {
+              console.error("Failed to hit turn timeout:", err);
+            }
+          })();
+        } else {
+          const delay = timeLeft + 2000; // Add 2s buffer
+          console.log(`Scheduling turn timeout for player ${currentActorPlayerId} in ${delay} ms (Clock Offset: ${clockOffset} ms)`);
+
+          turnTimeoutRef.current = setTimeout(async () => {
+            try {
+              const base = getApiBase();
+              const url = `${base}/api/game/sessions/timeout`;
+              console.log("Hitting Turn Timeout API:", url);
+              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId });
+            } catch (err) {
+              console.error("Failed to hit turn timeout:", err);
+            } finally {
+              turnTimeoutRef.current = null;
+            }
+          }, delay);
+        }
+      }
+    } else {
+      if (turnTimeoutRef.current) {
+        clearTimeout(turnTimeoutRef.current);
+        turnTimeoutRef.current = null;
+      }
+      turnTimeoutScheduledRef.current = null;
+    }
+
+    return () => {
+      if (turnTimeoutRef.current) {
+        clearTimeout(turnTimeoutRef.current);
+      }
+    };
+  }, [gameSession?.turnStartedAt, gameSession?.turnTimerSeconds, gameSession?.turnEndsAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime]);
   useEffect(() => {
     if (!tableId || !playerId) {
       setError('Table ID and Player ID are required.');
@@ -94,8 +244,9 @@ export default function Play() {
     setLeaveMessage({ type: '', text: '' });
 
     try {
-      const url = `${getLeaveGameUrl(tableId, playerId)}?sessionId=${gameSession.sessionId}`;
-      await axios.post(url);
+      const base = getApiBase();
+      const url = `${base}/api/game/sessions/leave`;
+      await axios.post(url, { sessionId: gameSession?.sessionId, playerId, tableId });
       setLeaveMessage({ type: 'success', text: 'Left game successfully.' });
       // Navigate back to tables after a short delay
       setTimeout(() => navigate('/tables'), 1000);
