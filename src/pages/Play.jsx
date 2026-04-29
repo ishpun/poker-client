@@ -109,6 +109,8 @@ export default function Play() {
 
   const turnTimeoutRef = useRef(null);
   const turnTimeoutScheduledRef = useRef(null);
+  const botActionTimeoutRef = useRef(null);
+  const botActionScheduledRef = useRef(null);
 
   useEffect(() => {
     const currentActorSeat = gameSession?.seats?.find(s => s && (s.isCurrentActor === true || Number(s.position) === Number(gameSession.currentActorSeatIndex)));
@@ -123,6 +125,8 @@ export default function Play() {
 
     if (
       gameSession?.sessionId &&
+      gameSession?.status !== 'COMPLETED' &&
+      !gameSession?.gameOver &&
       currentActorPlayerId &&
       (gameSession?.turnEndsAt || (gameSession?.turnStartedAt && gameSession?.turnTimerSeconds))
     ) {
@@ -190,7 +194,80 @@ export default function Play() {
         clearTimeout(turnTimeoutRef.current);
       }
     };
-  }, [gameSession?.turnStartedAt, gameSession?.turnTimerSeconds, gameSession?.turnEndsAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime]);
+  }, [gameSession?.turnStartedAt, gameSession?.turnTimerSeconds, gameSession?.turnEndsAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime, gameSession?.gameOver, gameSession?.status]);
+  useEffect(() => {
+    const currentActorSeat = gameSession?.seats?.find(s => s && (s.isCurrentActor === true || Number(s.position) === Number(gameSession.currentActorSeatIndex)));
+    const currentActorPlayerId = currentActorSeat?.playerId;
+
+    if (
+      gameSession?.sessionId &&
+      gameSession?.status !== 'COMPLETED' &&
+      !gameSession?.gameOver &&
+      currentActorPlayerId &&
+      gameSession?.botActionAt
+    ) {
+      const botActionAt = new Date(gameSession.botActionAt).getTime();
+      const botActionKey = `${gameSession.sessionId}_${gameSession.botActionAt}_${currentActorPlayerId}`;
+
+      if (botActionScheduledRef.current !== botActionKey) {
+        botActionScheduledRef.current = botActionKey;
+
+        let clockOffset = 0;
+        if (gameSession.serverTime) {
+          const serverNow = new Date(gameSession.serverTime).getTime();
+          const clientNow = Date.now();
+          clockOffset = serverNow - clientNow;
+        }
+
+        const adjustedNow = Date.now() + clockOffset;
+        const timeLeft = botActionAt - adjustedNow;
+
+        if (botActionTimeoutRef.current) {
+          clearTimeout(botActionTimeoutRef.current);
+        }
+
+        if (timeLeft <= 0) {
+          (async () => {
+            try {
+              const base = getApiBase();
+              const url = `${base}/api/game/sessions/bot-action`;
+              console.log("Hitting Bot Action API (expired):", url);
+              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId, isBot: true });
+            } catch (err) {
+              console.error("Failed to hit bot action:", err);
+            }
+          })();
+        } else {
+          console.log(`Scheduling bot action for player ${currentActorPlayerId} in ${timeLeft} ms`);
+
+          botActionTimeoutRef.current = setTimeout(async () => {
+            try {
+              const base = getApiBase();
+              const url = `${base}/api/game/sessions/bot-action`;
+              console.log("Hitting Bot Action API:", url);
+              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId, isBot: true });
+            } catch (err) {
+              console.error("Failed to hit bot action:", err);
+            } finally {
+              botActionTimeoutRef.current = null;
+            }
+          }, timeLeft);
+        }
+      }
+    } else {
+      if (botActionTimeoutRef.current) {
+        clearTimeout(botActionTimeoutRef.current);
+        botActionTimeoutRef.current = null;
+      }
+      botActionScheduledRef.current = null;
+    }
+
+    return () => {
+      if (botActionTimeoutRef.current) {
+        clearTimeout(botActionTimeoutRef.current);
+      }
+    };
+  }, [gameSession?.botActionAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime, gameSession?.gameOver, gameSession?.status]);
   useEffect(() => {
     if (!tableId || !playerId) {
       setError('Table ID and Player ID are required.');

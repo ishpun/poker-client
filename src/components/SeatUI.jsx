@@ -340,7 +340,7 @@ function getActionFromSeat(seat) {
   return null;
 }
 
-export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedAt, turnTimerSeconds, serverTime }) {
+export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, turnStartedAt, turnTimerSeconds, serverTime }) {
   const filled = seat && seat.playerId;
   const avatarSrc = filled && seat.playerAvatar ? `/assests/avatars/avtr_${seat.playerAvatar}.svg` : null;
   const holeCards = seat?.holeCards ?? [];
@@ -363,7 +363,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedA
   const status = (seat.status || '').toUpperCase();
   const lastAction = getActionFromSeat(seat);
   const showActionBubble = lastAction && status !== 'WINNER' && !isCurrentActor;
-  const showStatusOverlay = STATUS_OVERLAY.includes(status) && (!lastAction || status === 'WINNER' || status === 'ALL_IN' || status === 'QUIT');
+  const showStatusOverlay = (STATUS_OVERLAY.includes(status) && (!lastAction || status === 'WINNER' || status === 'ALL_IN' || status === 'QUIT')) || !!winnerInfo;
 
   return (
     <div className={wrapperClassName} style={wrapperStyle}>
@@ -371,8 +371,8 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedA
         {roleLabel && <span className={roleBadgeClassName} style={roleBadgeStyle(roleLabel)}>{roleLabel}</span>}
         {isCurrentActor && <div className={currentActorHighlightClassName} style={currentActorHighlightStyle} />}
         {showStatusOverlay && (
-          <div className={status === 'WINNER' ? winnerOverlayClassName : statusOverlayClassName} style={status === 'WINNER' ? winnerOverlayStyle : statusOverlayStyle}>
-            {status === 'WINNER' && winnerInfo ? (
+          <div className={winnerInfo ? winnerOverlayClassName : statusOverlayClassName} style={winnerInfo ? winnerOverlayStyle : statusOverlayStyle}>
+            {winnerInfo ? (
               <>
                 <span style={winnerHandRankStyle}>{formatHandRank(winnerInfo.handRank)}</span>
                 <span style={winnerPayoutStyle}>+{winnerInfo.payoutAmount ?? 0}</span>
@@ -419,7 +419,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, turnStartedA
           <span className="seat-chips-text" style={chipsTextStyle}>{chips.toLocaleString()}</span>
         </div>
         <div style={{ position: 'relative', width: avatarSize + 8, height: avatarSize + 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          {isCurrentActor && turnTimerSeconds != null && turnTimerSeconds > 0 && (
+          {isCurrentActor && turnTimerSeconds != null && turnTimerSeconds > 0 && !gameOver && (
             <TurnCountdown turnStartedAt={turnStartedAt} turnTimerSeconds={turnTimerSeconds} serverTime={serverTime} avatarSize={avatarSize} />
           )}
           <img src={avatarSrc} alt="" className="seat-avatar" style={avatarStyle(isMe)} />

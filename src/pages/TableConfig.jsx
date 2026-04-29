@@ -12,10 +12,13 @@ const defaultValues = {
   smallBlind: 10,
   bigBlind: 20,
   turnTimer: 0,
+  missTurnCount: 2,
   isBotGame: false,
   maxBotCount: '',
   botJoinInterval: 10,
   serviceCharge: 12,
+  botActionMinPercent: 10,
+  botActionMaxPercent: 15,
 };
 
 export default function TableConfig() {
@@ -68,6 +71,8 @@ export default function TableConfig() {
     }
     const turnTimer = Number(form.turnTimer);
     if (isNaN(turnTimer) || turnTimer < 0) next.turnTimer = 'Turn timer must be ≥ 0';
+    const missTurnCount = Number(form.missTurnCount);
+    if (isNaN(missTurnCount) || missTurnCount < 1) next.missTurnCount = 'Miss turn count must be ≥ 1';
     if (form.isBotGame) {
       const maxBot = form.maxBotCount === '' ? NaN : Number(form.maxBotCount);
       const seatCountNum = Number(form.seatCount);
@@ -93,10 +98,13 @@ export default function TableConfig() {
       smallBlind: Number(form.smallBlind),
       bigBlind: Number(form.bigBlind),
       turnTimer: Number(form.turnTimer) || 0,
+      missTurnCount: Number(form.missTurnCount) || 2,
       isBotGame: Boolean(form.isBotGame),
       maxBotCount: form.isBotGame ? Number(form.maxBotCount) || 0 : null,
       botJoinInterval: form.isBotGame ? Number(form.botJoinInterval) || null : null,
       serviceCharge: Number(form.serviceCharge) || 12,
+      botActionMinPercent: Number(form.botActionMinPercent) || 15,
+      botActionMaxPercent: Number(form.botActionMaxPercent) || 20,
     };
 
     setLoading(true);
@@ -122,6 +130,7 @@ export default function TableConfig() {
         <FormField id="smallBlind" label="Small blind" name="smallBlind" type="number" min={0} value={form.smallBlind} onChange={handleChange} error={errors.smallBlind} />
         <FormField id="bigBlind" label="Big blind" name="bigBlind" type="number" min={0} value={form.bigBlind} onChange={handleChange} error={errors.bigBlind} />
         <FormField id="turnTimer" label="Turn timer (seconds, 0 = off)" name="turnTimer" type="number" min={0} value={form.turnTimer} onChange={handleChange} error={errors.turnTimer} />
+        <FormField id="missTurnCount" label="Miss turn count (limit)" name="missTurnCount" type="number" min={1} value={form.missTurnCount} onChange={handleChange} error={errors.missTurnCount} />
         <FormField id="serviceCharge" label="Service charge (%)" name="serviceCharge" type="number" min={0} max={100} value={form.serviceCharge} onChange={handleChange} error={errors.serviceCharge} placeholder="e.g. 12" />
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
@@ -153,6 +162,28 @@ export default function TableConfig() {
               onChange={handleChange}
               error={errors.botJoinInterval}
               placeholder="e.g. 5"
+            />
+            <FormField
+              id="botActionMinPercent"
+              label="Bot Action Min % of Turn Time (e.g. 15)"
+              name="botActionMinPercent"
+              type="number"
+              min={1}
+              max={100}
+              value={form.botActionMinPercent}
+              onChange={handleChange}
+              error={errors.botActionMinPercent}
+            />
+            <FormField
+              id="botActionMaxPercent"
+              label="Bot Action Max % of Turn Time (e.g. 20)"
+              name="botActionMaxPercent"
+              type="number"
+              min={1}
+              max={100}
+              value={form.botActionMaxPercent}
+              onChange={handleChange}
+              error={errors.botActionMaxPercent}
             />
           </>
         )}

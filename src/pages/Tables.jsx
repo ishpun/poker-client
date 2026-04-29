@@ -56,6 +56,7 @@ export default function Tables() {
         smallBlind: t.smallBlind ?? 10,
         bigBlind: t.bigBlind ?? 20,
         turnTimer: t.turnTimer ?? 0,
+        missTurnCount: t.missTurnCount ?? 2,
         isBotGame: t.isBotGame ?? false,
         maxBotCount: t.maxBotCount ?? '',
         botJoinInterval: t.botJoinInterval ?? 10,
@@ -87,10 +88,12 @@ export default function Tables() {
       processedValue = value === '' ? '' : Number(value);
     } else if (name === 'turnTimer') {
       processedValue = value === '' ? 0 : Number(value);
+    } else if (name === 'missTurnCount') {
+      processedValue = value === '' ? 2 : Number(value);
     } else {
       processedValue = value === '' ? '' : Number(value);
     }
-    
+
     setEditModal((prev) => ({
       ...prev,
       form: {
@@ -116,6 +119,8 @@ export default function Tables() {
     if (!next.bigBlind && bigBlind < smallBlind) next.bigBlind = 'Big blind must be ≥ small blind';
     const turnTimer = Number(form.turnTimer);
     if (isNaN(turnTimer) || turnTimer < 0) next.turnTimer = 'Turn timer must be ≥ 0';
+    const missTurnCount = Number(form.missTurnCount);
+    if (isNaN(missTurnCount) || missTurnCount < 1) next.missTurnCount = 'Miss turn count must be ≥ 1';
     if (form.isBotGame) {
       const maxBot = form.maxBotCount === '' ? NaN : Number(form.maxBotCount);
       const seatCountNum = Number(form.seatCount);
@@ -141,6 +146,7 @@ export default function Tables() {
       smallBlind: Number(form.smallBlind),
       bigBlind: Number(form.bigBlind),
       turnTimer: Number(form.turnTimer) || 0,
+      missTurnCount: Number(form.missTurnCount) || 2,
       isBotGame: Boolean(form.isBotGame),
       maxBotCount: form.isBotGame ? Number(form.maxBotCount) || 0 : null,
       botJoinInterval: form.isBotGame ? Number(form.botJoinInterval) || null : null,
@@ -268,10 +274,24 @@ export default function Tables() {
               {joinLinksModal.links.map((link, idx) => (
                 <div key={idx} style={{ marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: idx < joinLinksModal.links.length - 1 ? '1px solid #eee' : 'none' }}>
                   <div style={{ fontSize: 12, color: '#666', marginBottom: '0.25rem' }}>Player: <strong>{link.playerId}</strong></div>
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '0.5rem 1rem', background: '#4CAF50', color: '#fff', textDecoration: 'none', borderRadius: 4, fontSize: 14 }}>
-                    Join Game
-                  </a>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '0.5rem 1rem', background: '#4CAF50', color: '#fff', textDecoration: 'none', borderRadius: 4, fontSize: 14 }}>
+                      Join Game
+                    </a>
+                    <Button 
+                      variant="secondary" 
+                      style={{ padding: '0.5rem 1rem', fontSize: 14 }} 
+                      onClick={() => {
+                        const fullUrl = `${window.location.origin}${link.url}`;
+                        navigator.clipboard.writeText(fullUrl)
+                          .catch(err => console.error('Failed to copy text: ', err));
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
                   <div style={{ marginTop: '0.25rem', fontSize: 11, color: '#999', fontFamily: 'monospace', wordBreak: 'break-all' }}>{window.location.origin}{link.url}</div>
+
                 </div>
               ))}
             </div>
@@ -344,6 +364,16 @@ export default function Tables() {
                 value={editModal.form.turnTimer}
                 onChange={(e) => updateEditForm('turnTimer', e.target.value)}
                 error={editModal.errors.turnTimer}
+              />
+              <FormField
+                id="editMissTurnCount"
+                label="Miss turn count (limit)"
+                type="number"
+                name="missTurnCount"
+                min={1}
+                value={editModal.form.missTurnCount}
+                onChange={(e) => updateEditForm('missTurnCount', e.target.value)}
+                error={editModal.errors.missTurnCount}
               />
               <FormField
                 id="editServiceCharge"

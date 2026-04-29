@@ -162,6 +162,7 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
                 isMe={seatByIndex(i)?.playerId === myPlayerId}
                 roleLabel={getRoleLabel(i)}
                 winnerInfo={getWinnerInfo(i)}
+                gameOver={gameSession?.gameOver || gameSession?.status === 'COMPLETED'}
                 turnStartedAt={gameSession?.turnStartedAt}
                 turnTimerSeconds={gameSession?.turnTimerSeconds}
                 serverTime={gameSession?.serverTime}

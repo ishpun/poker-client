@@ -20,6 +20,7 @@ const initialState = {
   turnEndsAt: null,
   botShouldJoinAt: null,
   serverTime: null,
+  botActionAt: null,
 };
 
 const gameSessionSlice = createSlice({
@@ -47,6 +48,7 @@ const gameSessionSlice = createSlice({
       if (payload.turnEndsAt !== undefined) state.turnEndsAt = payload.turnEndsAt ?? null;
       if (payload.botShouldJoinAt !== undefined) state.botShouldJoinAt = payload.botShouldJoinAt ?? null;
       if (payload.serverTime !== undefined) state.serverTime = payload.serverTime ?? null;
+      if (payload.botActionAt !== undefined) state.botActionAt = payload.botActionAt ?? null;
     },
     clearGameSession: () => initialState,
   },
