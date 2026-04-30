@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { getJoinGameUrl, getTableByIdUrl, getTableStateUrl } from '../api/tables';
+import { getTableByIdUrl, getTableStateUrl, submitActionUrl } from '../api/tables';
 import Button from '../components/Button';
 import GameHeader from '../components/GameHeader';
 import TableView from '../components/TableView';
@@ -246,13 +246,20 @@ export default function Play() {
 
     const key = `${tableId}\n${playerId}\n${currency}\n${tenantId}\n${String(tokenForJoin ?? '')}`;
     if (!joinPromiseByKey[key]) {
-      const joinBody = { pToken: tokenForJoin, currency, tenantId };
-      console.log('[Join] Calling join API for', { tableId, playerId });
+      const joinBody = { 
+        actionType: 'PLAYER_JOIN',
+        playerId,
+        tableId,
+        pToken: tokenForJoin, 
+        currency, 
+        tenantId 
+      };
+      console.log('[Join] Calling unified join API for', { tableId, playerId });
       joinPromiseByKey[key] = axios
         .get(getTableByIdUrl(tableId))
         .then((configRes) => {
           const config = configRes.data?.data || configRes.data;
-          return axios.post(getJoinGameUrl(tableId, playerId), joinBody).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
+          return axios.post(submitActionUrl(), joinBody).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
         })
         .finally(() => { delete joinPromiseByKey[key]; });
     } else {
@@ -314,7 +321,7 @@ export default function Play() {
     setLeaveMessage({ type: '', text: '' });
 
     try {
-      await executeGameAction('LEAVE_GAME', { playerId });
+      await executeGameAction('PLAYER_LEAVE', { playerId });
       setLeaveMessage({ type: 'success', text: 'Left game successfully.' });
       // Navigate back to tables after a short delay
       setTimeout(() => navigate('/tables'), 1000);

@@ -8,10 +8,8 @@ export const getTablesUrl = () => `${getApiBase()}/api/tables`;
 
 export const getTableByIdUrl = (tableId) => `${getApiBase()}/api/tables/${tableId}`;
 
-export const getJoinGameUrl = (tableId, playerId) => {
-  const base = getApiBase();
-  return `${base}/api/game/tables/${tableId}/players/${playerId}/join`;
-};
+// Standardized endpoint for all state-changing game actions (JOIN, ACTION, LEAVE, etc.)
+export const submitActionUrl = () => `${getApiBase()}/api/game/game-action`;
 
 export const getSessionUrl = (sessionId) => {
   const base = getApiBase();
@@ -27,7 +25,3 @@ export const getTableStateUrl = (tableId, playerId, sessionId, currency) => {
   return `${base}/api/game/tables/${tableId}/state?${params.toString()}`;
 };
 
-export const submitActionUrl = () => {
-  const base = getApiBase();
-  return `${base}/api/game/game-action`;
-};
