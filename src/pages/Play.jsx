@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
@@ -38,7 +38,7 @@ export default function Play() {
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveMessage, setLeaveMessage] = useState({ type: '', text: '' });
 
-  const executeGameAction = async (actionType, extraPayload = {}) => {
+  const executeGameAction = useCallback(async (actionType, extraPayload = {}) => {
     const base = getApiBase();
     const url = `${base}/api/game/game-action`;
     console.log(`[GameAction] Executing ${actionType} at`, url);
@@ -49,7 +49,7 @@ export default function Play() {
       tenantId,
       ...extraPayload
     });
-  };
+  }, [gameSession?.sessionId, tableId, tenantId]);
 
   const botJoinTimerStartedRef = useRef(false);
   const botJoinTimeoutRef = useRef(null);
@@ -96,7 +96,7 @@ export default function Play() {
         botJoinTimerStartedRef.current = false;
       }
     }
-  }, [tableConfig, gameSession, tableId, playerId]);
+  }, [tableConfig, gameSession, tableId, playerId, executeGameAction]);
 
   useEffect(() => {
     return () => {
@@ -178,7 +178,7 @@ export default function Play() {
         clearTimeout(turnTimeoutRef.current);
       }
     };
-  }, [gameSession?.turnStartedAt, gameSession?.turnTimerSeconds, gameSession?.turnEndsAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime, gameSession?.gameOver, gameSession?.status]);
+  }, [gameSession?.turnStartedAt, gameSession?.turnTimerSeconds, gameSession?.turnEndsAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime, gameSession?.gameOver, gameSession?.status, executeGameAction]);
   useEffect(() => {
     const currentActorSeat = gameSession?.seats?.find(s => s && (s.isCurrentActor === true || Number(s.position) === Number(gameSession.currentActorSeatIndex)));
     const currentActorPlayerId = currentActorSeat?.playerId;
@@ -236,7 +236,7 @@ export default function Play() {
         clearTimeout(botActionTimeoutRef.current);
       }
     };
-  }, [gameSession?.botActionAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime, gameSession?.gameOver, gameSession?.status]);
+  }, [gameSession?.botActionAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime, gameSession?.gameOver, gameSession?.status, executeGameAction]);
   useEffect(() => {
     if (!tableId || !playerId) {
       setError('Table ID and Player ID are required.');
