@@ -65,21 +65,29 @@ const FirebaseGameStateListener = ({ sessionId, tableId, playerId, currency }) =
     const unsubscribe = onValue(gameResyncRef, (snapshot) => {
       const data = snapshot.val();
       
-      if (!data) return;
+      if (!data) {
+        console.log(`[FirebaseSync] No data at path: poker/${sessionId}/player/${playerId}`);
+        return;
+      }
 
+      // Handle both formats (just in case)
       const incomingVersion = data.stateVersion || 0;
       const incomingTimestamp = data.updatedAt || 0;
       
-      console.log(`[FirebaseSync] Firebase check: Incoming [v:${incomingVersion} t:${incomingTimestamp}], Last [v:${lastProcessedVersionRef.current} t:${lastProcessedTimestampRef.current}]`);
+      console.log(`[FirebaseSync] Incoming [v:${incomingVersion} t:${incomingTimestamp}], Current [v:${lastProcessedVersionRef.current} t:${lastProcessedTimestampRef.current}]`);
       
       // Sync if EITHER the version or the timestamp has increased
       const isNewer = incomingVersion > lastProcessedVersionRef.current || 
                       incomingTimestamp > lastProcessedTimestampRef.current;
       
       if (isNewer) {
-        console.log(`[FirebaseSync] Newer version or timestamp detected! Fetching...`);
+        console.log(`[FirebaseSync] Newer data detected! Triggering fetchState...`);
         fetchState(incomingVersion, incomingTimestamp);
+      } else {
+        console.log(`[FirebaseSync] Data is not newer, skipping fetch.`);
       }
+    }, (error) => {
+      console.error(`[FirebaseSync] Error listening to Firebase:`, error);
     });
 
     unsubscribeRef.current = unsubscribe;
