@@ -38,6 +38,19 @@ export default function Play() {
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveMessage, setLeaveMessage] = useState({ type: '', text: '' });
 
+  const executeGameAction = async (actionType, extraPayload = {}) => {
+    const base = getApiBase();
+    const url = `${base}/api/game/game-action`;
+    console.log(`[GameAction] Executing ${actionType} at`, url);
+    return axios.post(url, {
+      actionType,
+      sessionId: gameSession?.sessionId,
+      tableId,
+      tenantId,
+      ...extraPayload
+    });
+  };
+
   const botJoinTimerStartedRef = useRef(false);
   const botJoinTimeoutRef = useRef(null);
 
@@ -61,31 +74,17 @@ export default function Play() {
           console.log(`Scheduling bot join based on BE time in ${delay} ms`);
 
           if (delay <= 0) {
-            (async () => {
-              try {
-                const base = getApiBase();
-                const url = `${base}/api/game/sessions/add-bot`;
-                console.log("Hitting Add Bot API (expired):", url);
-                await axios.post(url, { sessionId: gameSession.sessionId, playerId, tableId });
-              } catch (err) {
-                console.error("Failed to add bot:", err);
-              } finally {
-                botJoinTimerStartedRef.current = false;
-              }
-            })();
+            executeGameAction('ADD_BOT', { playerId })
+              .catch(err => console.error("Failed to add bot:", err))
+              .finally(() => { botJoinTimerStartedRef.current = false; });
           } else {
-            botJoinTimeoutRef.current = setTimeout(async () => {
-              try {
-                const base = getApiBase();
-                const url = `${base}/api/game/sessions/add-bot`;
-                console.log("Hitting Add Bot API:", url);
-                await axios.post(url, { sessionId: gameSession.sessionId, playerId, tableId });
-              } catch (err) {
-                console.error("Failed to add bot:", err);
-              } finally {
-                botJoinTimerStartedRef.current = false;
-                botJoinTimeoutRef.current = null;
-              }
+            botJoinTimeoutRef.current = setTimeout(() => {
+              executeGameAction('ADD_BOT', { playerId })
+                .catch(err => console.error("Failed to add bot:", err))
+                .finally(() => {
+                  botJoinTimerStartedRef.current = false;
+                  botJoinTimeoutRef.current = null;
+                });
             }, delay);
           }
         }
@@ -130,8 +129,8 @@ export default function Play() {
       currentActorPlayerId &&
       (gameSession?.turnEndsAt || (gameSession?.turnStartedAt && gameSession?.turnTimerSeconds))
     ) {
-      const turnEndsAt = gameSession.turnEndsAt 
-        ? new Date(gameSession.turnEndsAt).getTime() 
+      const turnEndsAt = gameSession.turnEndsAt
+        ? new Date(gameSession.turnEndsAt).getTime()
         : (new Date(gameSession.turnStartedAt).getTime() + gameSession.turnTimerSeconds * 1000);
       const turnKey = `${gameSession.sessionId}_${gameSession.turnEndsAt || gameSession.turnStartedAt}_${currentActorPlayerId}`;
 
@@ -153,31 +152,16 @@ export default function Play() {
         }
 
         if (timeLeft <= 0) {
-          (async () => {
-            try {
-              const base = getApiBase();
-              const url = `${base}/api/game/sessions/timeout`;
-              console.log("Hitting Turn Timeout API (expired):", url);
-              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId });
-            } catch (err) {
-              console.error("Failed to hit turn timeout:", err);
-            }
-          })();
+          executeGameAction('PLAYER_SKIP', { playerId: currentActorPlayerId })
+            .catch(err => console.error("Failed to hit turn timeout:", err));
         } else {
           const delay = timeLeft + 2000; // Add 2s buffer
           console.log(`Scheduling turn timeout for player ${currentActorPlayerId} in ${delay} ms (Clock Offset: ${clockOffset} ms)`);
 
-          turnTimeoutRef.current = setTimeout(async () => {
-            try {
-              const base = getApiBase();
-              const url = `${base}/api/game/sessions/timeout`;
-              console.log("Hitting Turn Timeout API:", url);
-              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId });
-            } catch (err) {
-              console.error("Failed to hit turn timeout:", err);
-            } finally {
-              turnTimeoutRef.current = null;
-            }
+          turnTimeoutRef.current = setTimeout(() => {
+            executeGameAction('PLAYER_SKIP', { playerId: currentActorPlayerId })
+              .catch(err => console.error("Failed to hit turn timeout:", err))
+              .finally(() => { turnTimeoutRef.current = null; });
           }, delay);
         }
       }
@@ -227,30 +211,15 @@ export default function Play() {
         }
 
         if (timeLeft <= 0) {
-          (async () => {
-            try {
-              const base = getApiBase();
-              const url = `${base}/api/game/sessions/bot-action`;
-              console.log("Hitting Bot Action API (expired):", url);
-              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId, isBot: true });
-            } catch (err) {
-              console.error("Failed to hit bot action:", err);
-            }
-          })();
+          executeGameAction('BOT_ACTION', { playerId: currentActorPlayerId, isBot: true })
+            .catch(err => console.error("Failed to hit bot action:", err));
         } else {
           console.log(`Scheduling bot action for player ${currentActorPlayerId} in ${timeLeft} ms`);
 
-          botActionTimeoutRef.current = setTimeout(async () => {
-            try {
-              const base = getApiBase();
-              const url = `${base}/api/game/sessions/bot-action`;
-              console.log("Hitting Bot Action API:", url);
-              await axios.post(url, { sessionId: gameSession.sessionId, playerId: currentActorPlayerId, tableId, isBot: true });
-            } catch (err) {
-              console.error("Failed to hit bot action:", err);
-            } finally {
-              botActionTimeoutRef.current = null;
-            }
+          botActionTimeoutRef.current = setTimeout(() => {
+            executeGameAction('BOT_ACTION', { playerId: currentActorPlayerId, isBot: true })
+              .catch(err => console.error("Failed to hit bot action:", err))
+              .finally(() => { botActionTimeoutRef.current = null; });
           }, timeLeft);
         }
       }
@@ -300,7 +269,7 @@ export default function Play() {
           if (joinDataInner) {
             // First set session info (like sessionId) to trigger Firebase listener
             dispatch(setGameSession(joinDataInner));
-            
+
             // IMMEDIATE STATE FETCH: Guarantee state is loaded right after join
             if (joinDataInner.sessionId) {
               const stateUrl = getTableStateUrl(tableId, playerId, joinDataInner.sessionId, currency);
@@ -337,7 +306,7 @@ export default function Play() {
       dispatch(clearPlayer());
       dispatch(clearGameSession());
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tableId, playerId]);  // ← intentionally minimal deps; currency/token captured at mount
 
   const handleLeaveGame = async () => {
@@ -345,9 +314,7 @@ export default function Play() {
     setLeaveMessage({ type: '', text: '' });
 
     try {
-      const base = getApiBase();
-      const url = `${base}/api/game/sessions/leave`;
-      await axios.post(url, { sessionId: gameSession?.sessionId, playerId, tableId });
+      await executeGameAction('LEAVE_GAME', { playerId });
       setLeaveMessage({ type: 'success', text: 'Left game successfully.' });
       // Navigate back to tables after a short delay
       setTimeout(() => navigate('/tables'), 1000);

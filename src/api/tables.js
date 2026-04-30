@@ -29,5 +29,5 @@ export const getTableStateUrl = (tableId, playerId, sessionId, currency) => {
 
 export const submitActionUrl = () => {
   const base = getApiBase();
-  return `${base}/api/game/action`;
+  return `${base}/api/game/game-action`;
 };

@@ -212,6 +212,7 @@ export default function ActionButtons({ allowedActions, tableId, seatIndex, play
     try {
       const amount = getBetAmountForAction(action, betAmount);
       const payload = {
+        actionType: 'PLAYER_ACTION',
         action,
         amount,
         sessionId,
