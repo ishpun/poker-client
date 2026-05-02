@@ -39,17 +39,18 @@ export default function Play() {
   const [leaveMessage, setLeaveMessage] = useState({ type: '', text: '' });
 
   const executeGameAction = useCallback(async (actionType, extraPayload = {}) => {
-    const base = getApiBase();
-    const url = `${base}/api/game/game-action`;
+    const url = submitActionUrl();
     console.log(`[GameAction] Executing ${actionType} at`, url);
     return axios.post(url, {
       actionType,
       sessionId: gameSession?.sessionId,
       tableId,
       tenantId,
+      currency,
+      pToken: tokenForJoin,
       ...extraPayload
     });
-  }, [gameSession?.sessionId, tableId, tenantId]);
+  }, [gameSession?.sessionId, tableId, tenantId, currency, tokenForJoin]);
 
   const botJoinTimerStartedRef = useRef(false);
   const botJoinTimeoutRef = useRef(null);
@@ -246,13 +247,13 @@ export default function Play() {
 
     const key = `${tableId}\n${playerId}\n${currency}\n${tenantId}\n${String(tokenForJoin ?? '')}`;
     if (!joinPromiseByKey[key]) {
-      const joinBody = { 
+      const joinBody = {
         actionType: 'PLAYER_JOIN',
         playerId,
         tableId,
-        pToken: tokenForJoin, 
-        currency, 
-        tenantId 
+        pToken: tokenForJoin,
+        currency,
+        tenantId
       };
       console.log('[Join] Calling unified join API for', { tableId, playerId });
       joinPromiseByKey[key] = axios

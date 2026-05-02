@@ -60,13 +60,13 @@ const FirebaseGameStateListener = ({ sessionId, tableId, playerId, currency }) =
     console.log(`[FirebaseSync] Starting dual resync listener for session ${sessionId}, player ${playerId}`);
 
     // Listen to the game's resync node
-    const gameResyncRef = ref(realTimeDB, `poker/${sessionId}/player/${playerId}`);
+    const gameResyncRef = ref(realTimeDB, `poker/${sessionId}/${playerId}`);
     
     const unsubscribe = onValue(gameResyncRef, (snapshot) => {
       const data = snapshot.val();
       
       if (!data) {
-        console.log(`[FirebaseSync] No data at path: poker/${sessionId}/player/${playerId}`);
+        console.log(`[FirebaseSync] No data at path: poker/${sessionId}/${playerId}`);
         return;
       }
 
