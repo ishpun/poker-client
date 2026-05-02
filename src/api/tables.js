@@ -24,4 +24,5 @@ export const getTableStateUrl = (tableId, playerId, sessionId, currency) => {
   if (currency) params.set('currency', currency);
   return `${base}/api/game/tables/${tableId}/state?${params.toString()}`;
 };
+export const getTestFirebaseUrl = () => `${getApiBase()}/api/game/test-firebase-all`;
 
