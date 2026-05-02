@@ -11,11 +11,7 @@ import ActionButtons from '../components/ActionButtons';
 import { setPlayer, clearPlayer } from '../store/playerSlice';
 import { setGameSession, clearGameSession } from '../store/gameSessionSlice';
 
-const getApiBase = () => {
-  const host = process.env.REACT_APP_API_HOST;
-  if (host) return host.replace(/\/api\/game\/?$/, '');
-  return window.location.origin;
-};
+
 
 
 
@@ -42,7 +38,7 @@ export default function Play() {
     const url = submitActionUrl();
     console.log(`[GameAction] Executing ${actionType} at`, url);
     return axios.post(url, {
-      actionType,
+      action: actionType,
       sessionId: gameSession?.sessionId,
       tableId,
       tenantId,
@@ -248,7 +244,7 @@ export default function Play() {
     const key = `${tableId}\n${playerId}\n${currency}\n${tenantId}\n${String(tokenForJoin ?? '')}`;
     if (!joinPromiseByKey[key]) {
       const joinBody = {
-        actionType: 'PLAYER_JOIN',
+        action: 'PLAYER_JOIN',
         playerId,
         tableId,
         pToken: tokenForJoin,
