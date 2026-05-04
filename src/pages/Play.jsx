@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { getTableByIdUrl, getTableStateUrl, submitActionUrl, getTestFirebaseUrl } from '../api/tables';
+import { getTableByIdUrl, getTableStateUrl, submitActionUrl } from '../api/tables';
 import Button from '../components/Button';
 import GameHeader from '../components/GameHeader';
 import TableView from '../components/TableView';
@@ -251,8 +251,6 @@ export default function Play() {
         currency,
         tenantId
       };
-      console.log('[Join] Calling Firebase Test Write...');
-      axios.get(getTestFirebaseUrl()).catch(err => console.error("Firebase test write failed:", err));
 
       console.log('[Join] Calling unified join API for', { tableId, playerId });
       joinPromiseByKey[key] = axios
