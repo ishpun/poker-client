@@ -243,14 +243,14 @@ export default function Play() {
 
     const key = `${tableId}\n${playerId}\n${currency}\n${tenantId}\n${String(tokenForJoin ?? '')}`;
     if (!joinPromiseByKey[key]) {
-      const joinBody = {
-        action: 'PLAYER_JOIN',
-        playerId,
-        tableId,
-        pToken: tokenForJoin,
-        currency,
-        tenantId
-      };
+      // const joinBody = {
+      //   action: 'PLAYER_JOIN',
+      //   playerId,
+      //   tableId,
+      //   pToken: tokenForJoin,
+      //   currency,
+      //   tenantId
+      // };
       console.log('[Join] Calling Firebase Test Write...');
       axios.get(getTestFirebaseUrl()).catch(err => console.error("Firebase test write failed:", err));
 
@@ -259,7 +259,9 @@ export default function Play() {
         .get(getTableByIdUrl(tableId))
         .then((configRes) => {
           const config = configRes.data?.data || configRes.data;
-          return axios.post(submitActionUrl(), joinBody).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
+          // Commented out automatic join as requested
+          // return axios.post(submitActionUrl(), joinBody).then((joinRes) => ({ tableConfig: config, joinData: joinRes.data }));
+          return { tableConfig: config, joinData: null };
         })
         .finally(() => { delete joinPromiseByKey[key]; });
     } else {
