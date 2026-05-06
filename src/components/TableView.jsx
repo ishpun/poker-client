@@ -21,7 +21,7 @@ function seatWrapperStyle(position) {
   };
 }
 
-export default function TableView({ tableConfig, gameSession, myPlayerId, currentPlayer }) {
+export default function TableView({ tableConfig, gameSession, myPlayerId, currentPlayer, showAllCards }) {
   const seatCount = tableConfig?.seatCount ?? 6;
   let seats = gameSession?.seats ?? [];
   if (seats.length === 0 && currentPlayer && currentPlayer.playerId) {
@@ -68,7 +68,7 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
     left: '50%',
     top: '50%',
     transform: 'translate(-50%, -50%)',
-    zIndex: 0,
+    zIndex: 2,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -166,6 +166,7 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
                 turnStartedAt={gameSession?.turnStartedAt}
                 turnTimerSeconds={gameSession?.turnTimerSeconds}
                 serverTime={gameSession?.serverTime}
+                showAllCards={showAllCards}
               />
             </div>
           ))}

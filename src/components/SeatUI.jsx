@@ -340,7 +340,7 @@ function getActionFromSeat(seat) {
   return null;
 }
 
-export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, turnStartedAt, turnTimerSeconds, serverTime }) {
+export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, turnStartedAt, turnTimerSeconds, serverTime, showAllCards }) {
   const filled = seat && seat.playerId;
   const avatarSrc = filled && seat.playerAvatar ? `/assests/avatars/avtr_${seat.playerAvatar}.svg` : null;
   const holeCards = seat?.holeCards ?? [];
@@ -382,7 +382,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, tu
             )}
           </div>
         )}
-        {isMe ? (
+        {(isMe || showAllCards) ? (
           holeCards.length > 0 && (
             <div className="seat-cards-container" style={cardsContainerStyle}>
               {holeCards.map((cardStr, index) => {
