@@ -34,6 +34,7 @@ export default function Play() {
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveMessage, setLeaveMessage] = useState({ type: '', text: '' });
 
+
   const executeGameAction = useCallback(async (actionType, extraPayload = {}) => {
     const url = submitActionUrl();
     console.log(`[GameAction] Executing ${actionType} at`, url);
@@ -234,6 +235,7 @@ export default function Play() {
       }
     };
   }, [gameSession?.botActionAt, gameSession?.currentActorSeatIndex, gameSession?.seats, gameSession?.sessionId, tableId, gameSession?.serverTime, gameSession?.gameOver, gameSession?.status, executeGameAction]);
+
   useEffect(() => {
     if (!tableId || !playerId) {
       setError('Table ID and Player ID are required.');
@@ -417,9 +419,9 @@ export default function Play() {
         <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <TableView tableConfig={tableConfig} gameSession={gameSession} myPlayerId={playerId} currentPlayer={player.playerId ? player : null} />
         </div>
-        {hasGameSession && !gameSession.gameOver && gameSession.status !== 'COMPLETED' && player.isCurrentActor && gameSession.allowedActions && gameSession.allowedActions.length > 0 && !['FOLDED', 'ALL_IN', 'QUIT'].includes((player.status || '').toUpperCase()) && (
+        {hasGameSession && !gameSession.gameOver && gameSession.status !== 'COMPLETED' && !['FOLDED', 'QUIT'].includes((player.status || '').toUpperCase()) && (
           <ActionButtons
-            allowedActions={gameSession.allowedActions}
+            allowedActions={player.isCurrentActor ? gameSession.allowedActions : []}
             tableId={tableId}
             seatIndex={player.position}
             playerId={playerId}

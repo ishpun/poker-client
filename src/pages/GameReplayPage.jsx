@@ -15,6 +15,7 @@ export default function GameReplayPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('rounds'); // 'info', 'rounds', 'raw'
 
+
   const fetchSession = (id) => {
     if (!id) return;
     setLoading(true);
@@ -43,15 +44,26 @@ export default function GameReplayPage() {
     if (!sessionData) return [];
     const s = [];
 
+    // Initialize tracking variables
+    let currentPot = 0;
+    // We use the initial seats from sessionData but reset their transient states
+    let currentSeats = (sessionData.seats || []).map(seat => ({ 
+      ...seat, 
+      lastAction: null, 
+      isCurrentActor: false,
+      status: seat.playerId ? 'ACTIVE' : 'EMPTY' 
+    }));
+
     // Initial state step
     s.push({
       type: 'INITIAL',
       description: 'Game Started',
       state: {
         ...sessionData,
+        potAmount: 0,
         communityCards: [],
         lastHandWinInfo: [],
-        seats: sessionData.seats?.map(seat => ({ ...seat, lastAction: null, isCurrentActor: false }))
+        seats: [...currentSeats]
       }
     });
 
@@ -59,7 +71,6 @@ export default function GameReplayPage() {
     let cumulativeCommunityCards = [];
 
     rounds.forEach((round, rIdx) => {
-      // Reveal cards for this street
       const communityPool = Array.isArray(sessionData.communityCards) ? sessionData.communityCards : [];
       const street = (round.street || '').toUpperCase();
       let streetCards = [];
@@ -67,42 +78,68 @@ export default function GameReplayPage() {
       else if (street === 'TURN') streetCards = communityPool.slice(0, 4);
       else if (street === 'RIVER') streetCards = communityPool.slice(0, 5);
       else if (street === 'PREFLOP') streetCards = [];
-      else streetCards = [...cumulativeCommunityCards]; // Keep previous if street is unknown
+      else streetCards = [...cumulativeCommunityCards];
       
       cumulativeCommunityCards = streetCards;
+
+      // Reset lastActions at start of street, and set first actor
+      const firstActionInRound = round.actions?.[0];
+      currentSeats = currentSeats.map(seat => ({
+        ...seat,
+        lastAction: null,
+        isCurrentActor: firstActionInRound && Number(seat.position) === Number(firstActionInRound.seatIndex)
+      }));
 
       s.push({
         type: 'STREET_START',
         description: `Street: ${round.street} Started`,
         state: {
           ...sessionData,
+          potAmount: currentPot,
           communityCards: [...cumulativeCommunityCards],
           lastHandWinInfo: [],
           currentStreet: round.street,
-          seats: s[s.length - 1].state.seats.map(seat => ({ ...seat, lastAction: null, isCurrentActor: false }))
+          seats: [...currentSeats]
         }
       });
 
       round.actions?.forEach((action, aIdx) => {
-        const prevState = s[s.length - 1].state;
-        const newSeats = prevState.seats.map(seat => {
-          if (Number(seat.position) === Number(action.seatIndex)) {
-            return {
-              ...seat,
-              lastAction: action.action,
-              // Note: chips update is complex in poker, we show the snapshot value for now
-              isCurrentActor: true
-            };
+        const nextAction = round.actions[aIdx + 1];
+        
+        currentSeats = currentSeats.map(seat => {
+          const isActor = Number(seat.position) === Number(action.seatIndex);
+          const isNextActor = nextAction && Number(seat.position) === Number(nextAction.seatIndex);
+          
+          let updatedSeat = { ...seat };
+          
+          if (isActor) {
+            updatedSeat.lastAction = action.action;
+            if (action.action === 'FOLD') updatedSeat.status = 'FOLDED';
+            if (action.action === 'ALL_IN') updatedSeat.status = 'ALL_IN';
+            
+            if (action.playerBalance != null) {
+              updatedSeat.chips = action.playerBalance;
+            } else if (action.betAmount > 0) {
+              updatedSeat.chips = (updatedSeat.chips || 0) - action.betAmount;
+            }
           }
-          return { ...seat, isCurrentActor: false };
+          
+          updatedSeat.isCurrentActor = !!isNextActor;
+          return updatedSeat;
         });
+
+        currentPot += (action.betAmount || 0);
 
         s.push({
           type: 'ACTION',
-          description: `[${round.street}] ${action.playerId} -> ${action.action} (${action.amount || 0})`,
+          description: `[${round.street}] ${action.playerId} -> ${action.action} (${action.betAmount || 0})`,
           state: {
-            ...prevState,
-            seats: newSeats
+            ...sessionData,
+            potAmount: currentPot,
+            communityCards: [...cumulativeCommunityCards],
+            currentStreet: round.street,
+            seats: [...currentSeats],
+            lastHandWinInfo: []
           }
         });
       });
@@ -115,8 +152,10 @@ export default function GameReplayPage() {
         description: 'Winners Declared',
         state: {
           ...sessionData,
+          potAmount: currentPot,
+          communityCards: cumulativeCommunityCards,
           lastHandWinInfo: sessionData.lastHandWinInfo,
-          seats: s[s.length - 1].state.seats.map(seat => ({ ...seat, isCurrentActor: false }))
+          seats: currentSeats.map(seat => ({ ...seat, isCurrentActor: false }))
         }
       });
     }
@@ -231,8 +270,23 @@ export default function GameReplayPage() {
                 currentPlayer={null} 
                 showAllCards={true}
               />
-              <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.7)', padding: '0.6rem 1.2rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', pointerEvents: 'none' }}>
-                <div style={{ fontSize: 16, fontWeight: 700, textAlign: 'center' }}>{currentStep?.description}</div>
+              <div style={{ 
+                position: 'absolute', 
+                bottom: 30, 
+                left: '50%', 
+                transform: 'translateX(-50%)', 
+                background: 'rgba(0,0,0,0.8)', 
+                padding: '0.8rem 1.5rem', 
+                borderRadius: 12, 
+                border: '1px solid rgba(255,255,255,0.3)', 
+                pointerEvents: 'none',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                minWidth: 300,
+                textAlign: 'center',
+                zIndex: 100
+              }}>
+                <div style={{ fontSize: 12, opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Step {currentStepIndex + 1} of {steps.length}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{currentStep?.description}</div>
               </div>
             </div>
           )}

@@ -363,7 +363,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, tu
   const status = (seat.status || '').toUpperCase();
   const lastAction = getActionFromSeat(seat);
   const showActionBubble = lastAction && status !== 'WINNER' && !isCurrentActor;
-  const showStatusOverlay = (STATUS_OVERLAY.includes(status) && (!lastAction || status === 'WINNER' || status === 'ALL_IN' || status === 'QUIT')) || !!winnerInfo;
+  const showStatusOverlay = (STATUS_OVERLAY.includes(status) && (!lastAction || ['WINNER', 'ALL_IN', 'QUIT', 'FOLDED'].includes(status))) || !!winnerInfo;
 
   return (
     <div className={wrapperClassName} style={wrapperStyle}>

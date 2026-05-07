@@ -192,9 +192,8 @@ export default function ActionButtons({ allowedActions, tableId, seatIndex, play
     }
   }, [showSlider]);
 
-  if (!allowedActions || allowedActions.length === 0) {
-    return null;
-  }
+  // We only show action buttons if allowedActions is present.
+  const hasActions = allowedActions && allowedActions.length > 0;
 
   const getBetAmountForAction = (action, overrideAmount = null) => {
     if (overrideAmount !== null) return overrideAmount;
@@ -355,7 +354,7 @@ export default function ActionButtons({ allowedActions, tableId, seatIndex, play
         </div>
       )}
       <div className="action-buttons-bar" style={buttonContainerStyle}>
-        {allowedActions.map((actionData) => {
+        {hasActions && allowedActions.map((actionData) => {
           const { action, callAmount } = actionData;
           const displayAmount = (action === 'CALL' || action === 'ALL_IN') ? callAmount : null;
           

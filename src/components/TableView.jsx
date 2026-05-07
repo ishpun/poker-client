@@ -142,6 +142,30 @@ export default function TableView({ tableConfig, gameSession, myPlayerId, curren
       <div className="table-view-wrapper" style={tableWrapperStyle}>
         <img src="/poker_table.png" alt="Poker table" style={tableImgStyle} />
         <div className="table-view-center-cards" style={centerLayerStyle}>
+          {gameSession?.potAmount > 0 && (
+            <div style={{ 
+              position: 'absolute', 
+              top: -60, 
+              left: '50%', 
+              transform: 'translateX(-50%)', 
+              background: 'rgba(0,0,0,0.7)', 
+              padding: '6px 16px', 
+              borderRadius: 20, 
+              border: '2px solid rgba(255,255,255,0.1)', 
+              color: '#FFD700', 
+              fontWeight: 800, 
+              fontSize: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
+              whiteSpace: 'nowrap',
+              zIndex: 10
+            }}>
+              <img src="/assests/practiceChip.png" alt="" style={{ width: 20, height: 20 }} />
+              <span>POT: {gameSession.potAmount.toLocaleString()}</span>
+            </div>
+          )}
           {[0, 1, 2, 3, 4].map((i) => {
             const card = communityCards[i];
             const src = card ? getCardSrc(card) : null;
