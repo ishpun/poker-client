@@ -62,7 +62,7 @@ export default function GameReplayPage() {
       const initialBal = discoveredInitialBalances[seat.playerId];
       return { 
         ...seat, 
-        chips: initialBal !== undefined ? initialBal : (seat.balance ?? seat.chips ?? 0),
+        playerBalance: initialBal !== undefined ? initialBal : (seat.playerBalance ?? 0),
         lastAction: null, 
         isCurrentActor: false,
         status: seat.playerId ? 'ACTIVE' : 'EMPTY' 
@@ -133,7 +133,7 @@ export default function GameReplayPage() {
             if (action.action === 'ALL_IN') updatedSeat.status = 'ALL_IN';
             
             if (action.playerBalance != null) {
-              updatedSeat.chips = action.playerBalance;
+              updatedSeat.playerBalance = action.playerBalance;
             }
           }
           
@@ -359,7 +359,7 @@ export default function GameReplayPage() {
                   {sessionData.seats?.map((seat, i) => (
                     <div key={i} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: 4, marginBottom: '0.5rem' }}>
                       <div style={{ fontWeight: 600 }}>Seat {seat.position}: {seat.playerName} ({seat.playerId})</div>
-                      <div style={{ fontSize: 11, opacity: 0.7 }}>Chips: {seat.balance ?? seat.chips ?? 0} | Cards: {seat.holeCards?.join(', ')}</div>
+                      <div style={{ fontSize: 11, opacity: 0.7 }}>Chips: {seat.playerBalance ?? 0} | Cards: {seat.holeCards?.join(', ')}</div>
                     </div>
                   ))}
                 </div>

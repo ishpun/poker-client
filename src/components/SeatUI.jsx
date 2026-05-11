@@ -357,7 +357,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, tu
   }
 
   const name = toTitleCase(seat.playerName || seat.playerId || '—');
-  const chips = seat.chips ?? 0;
+  const playerBalance = seat.playerBalance ?? 0;
   const isCurrentActor = seat.isCurrentActor === true;
   const isCurrentPlayer = isMe && isCurrentActor;
   const status = (seat.status || '').toUpperCase();
@@ -416,7 +416,7 @@ export default function SeatUI({ seat, isMe, roleLabel, winnerInfo, gameOver, tu
         )}
         <div className="seat-chips-line" style={chipsLineStyle}>
           <img src={CHIP_ICON} alt="" className="seat-chip-icon" style={chipIconStyle} />
-          <span className="seat-chips-text" style={chipsTextStyle}>{chips.toLocaleString()}</span>
+          <span className="seat-chips-text" style={chipsTextStyle}>{playerBalance.toLocaleString()}</span>
         </div>
         <div style={{ position: 'relative', width: avatarSize + 8, height: avatarSize + 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {isCurrentActor && turnTimerSeconds != null && turnTimerSeconds > 0 && !gameOver && (
