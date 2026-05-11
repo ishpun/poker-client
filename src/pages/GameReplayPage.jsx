@@ -46,13 +46,28 @@ export default function GameReplayPage() {
 
     // Initialize tracking variables
     let currentPot = 0;
+
+    // Discover initial balances from the first action of each player
+    const discoveredInitialBalances = {};
+    (sessionData.bettingRounds?.rounds || []).forEach(round => {
+      round.actions?.forEach(action => {
+        if (action.playerBalance != null && discoveredInitialBalances[action.playerId] === undefined) {
+          discoveredInitialBalances[action.playerId] = action.playerBalance + (action.betAmount || 0);
+        }
+      });
+    });
+
     // We use the initial seats from sessionData but reset their transient states
-    let currentSeats = (sessionData.seats || []).map(seat => ({ 
-      ...seat, 
-      lastAction: null, 
-      isCurrentActor: false,
-      status: seat.playerId ? 'ACTIVE' : 'EMPTY' 
-    }));
+    let currentSeats = (sessionData.seats || []).map(seat => {
+      const initialBal = discoveredInitialBalances[seat.playerId];
+      return { 
+        ...seat, 
+        chips: initialBal !== undefined ? initialBal : (seat.balance ?? seat.chips ?? 0),
+        lastAction: null, 
+        isCurrentActor: false,
+        status: seat.playerId ? 'ACTIVE' : 'EMPTY' 
+      };
+    });
 
     // Initial state step
     s.push({
@@ -119,8 +134,6 @@ export default function GameReplayPage() {
             
             if (action.playerBalance != null) {
               updatedSeat.chips = action.playerBalance;
-            } else if (action.betAmount > 0) {
-              updatedSeat.chips = (updatedSeat.chips || 0) - action.betAmount;
             }
           }
           
@@ -132,7 +145,7 @@ export default function GameReplayPage() {
 
         s.push({
           type: 'ACTION',
-          description: `[${round.street}] ${action.playerId} -> ${action.action} (${action.betAmount || 0})`,
+          description: `[${round.street}] ${action.playerId} -> ${action.action} (${action.betAmount || 0})${action.playerBalance != null ? ` | Bal: ${action.playerBalance}` : ''}`,
           state: {
             ...sessionData,
             potAmount: currentPot,
@@ -346,7 +359,7 @@ export default function GameReplayPage() {
                   {sessionData.seats?.map((seat, i) => (
                     <div key={i} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: 4, marginBottom: '0.5rem' }}>
                       <div style={{ fontWeight: 600 }}>Seat {seat.position}: {seat.playerName} ({seat.playerId})</div>
-                      <div style={{ fontSize: 11, opacity: 0.7 }}>Chips: {seat.chips} | Cards: {seat.holeCards?.join(', ')}</div>
+                      <div style={{ fontSize: 11, opacity: 0.7 }}>Chips: {seat.balance ?? seat.chips ?? 0} | Cards: {seat.holeCards?.join(', ')}</div>
                     </div>
                   ))}
                 </div>
