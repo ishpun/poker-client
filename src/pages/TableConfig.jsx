@@ -18,6 +18,8 @@ const defaultValues = {
   serviceCharge: 12,
   botActionMinPercent: 10,
   botActionMaxPercent: 15,
+  minBuyIn: 100,
+  entryFee: 100,
 };
 
 export default function TableConfig() {
@@ -35,7 +37,7 @@ export default function TableConfig() {
       processedValue = checked;
     } else if (name === 'tableName') {
       processedValue = value;
-    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge') {
+    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge' || name === 'minBuyIn' || name === 'entryFee') {
       processedValue = value === '' ? '' : Number(value);
     } else if (name === 'turnTimer') {
       processedValue = value === '' ? 0 : Number(value);
@@ -43,10 +45,13 @@ export default function TableConfig() {
       processedValue = value === '' ? '' : Number(value);
     }
     
-    setForm((prev) => ({
-      ...prev,
-      [name]: processedValue,
-    }));
+    setForm((prev) => {
+      const next = { ...prev, [name]: processedValue };
+      if (name === 'bigBlind' && processedValue !== '') {
+        next.minBuyIn = Number(processedValue) * 5;
+      }
+      return next;
+    });
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
@@ -78,6 +83,11 @@ export default function TableConfig() {
       const botJoinInterval = form.botJoinInterval === '' ? NaN : Number(form.botJoinInterval);
       if (isNaN(botJoinInterval) || botJoinInterval < 1) next.botJoinInterval = 'Bot join interval must be at least 1 second';
     }
+    const minBuyIn = Number(form.minBuyIn);
+    if (isNaN(minBuyIn) || minBuyIn < 0) next.minBuyIn = 'Min buy-in must be ≥ 0';
+    const entryFee = Number(form.entryFee);
+    if (isNaN(entryFee) || entryFee < 0) next.entryFee = 'Entry fee must be ≥ 0';
+
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -101,6 +111,8 @@ export default function TableConfig() {
       serviceCharge: Number(form.serviceCharge) || 12,
       botActionMinPercent: Number(form.botActionMinPercent) || 15,
       botActionMaxPercent: Number(form.botActionMaxPercent) || 20,
+      minBuyIn: Number(form.minBuyIn) || 0,
+      entryFee: Number(form.entryFee) || 0,
     };
 
     setLoading(true);
@@ -126,6 +138,8 @@ export default function TableConfig() {
         <FormField id="smallBlind" label="Small blind" name="smallBlind" type="number" min={0} value={form.smallBlind} onChange={handleChange} error={errors.smallBlind} />
         <FormField id="bigBlind" label="Big blind" name="bigBlind" type="number" min={0} value={form.bigBlind} onChange={handleChange} error={errors.bigBlind} />
         <FormField id="turnTimer" label="Turn timer (seconds, 0 = off)" name="turnTimer" type="number" min={0} value={form.turnTimer} onChange={handleChange} error={errors.turnTimer} />
+        <FormField id="minBuyIn" label="Min Buy-in" name="minBuyIn" type="number" min={0} value={form.minBuyIn} onChange={handleChange} error={errors.minBuyIn} />
+        <FormField id="entryFee" label="Entry fee" name="entryFee" type="number" min={0} value={form.entryFee} onChange={handleChange} error={errors.entryFee} />
         <FormField id="serviceCharge" label="Service charge (%)" name="serviceCharge" type="number" min={0} max={100} value={form.serviceCharge} onChange={handleChange} error={errors.serviceCharge} placeholder="e.g. 12" />
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>

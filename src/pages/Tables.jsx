@@ -60,6 +60,8 @@ export default function Tables() {
         maxBotCount: t.maxBotCount ?? '',
         botJoinInterval: t.botJoinInterval ?? 10,
         serviceCharge: t.serviceCharge ?? 12,
+        minBuyIn: t.minBuyIn ?? 100,
+        entryFee: t.entryFee ?? 100,
       },
       errors: {},
       saving: false,
@@ -83,7 +85,7 @@ export default function Tables() {
       processedValue = Boolean(value);
     } else if (name === 'tableName') {
       processedValue = value;
-    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge') {
+    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge' || name === 'minBuyIn' || name === 'entryFee') {
       processedValue = value === '' ? '' : Number(value);
     } else if (name === 'turnTimer') {
       processedValue = value === '' ? 0 : Number(value);
@@ -91,14 +93,17 @@ export default function Tables() {
       processedValue = value === '' ? '' : Number(value);
     }
 
-    setEditModal((prev) => ({
-      ...prev,
-      form: {
-        ...prev.form,
-        [name]: processedValue,
-      },
-      errors: { ...prev.errors, [name]: null },
-    }));
+    setEditModal((prev) => {
+      const nextForm = { ...prev.form, [name]: processedValue };
+      if (name === 'bigBlind' && processedValue !== '') {
+        nextForm.minBuyIn = Number(processedValue) * 5;
+      }
+      return {
+        ...prev,
+        form: nextForm,
+        errors: { ...prev.errors, [name]: null },
+      };
+    });
   };
 
   const validateEdit = () => {
@@ -124,6 +129,11 @@ export default function Tables() {
       const botJoinInterval = form.botJoinInterval === '' ? NaN : Number(form.botJoinInterval);
       if (isNaN(botJoinInterval) || botJoinInterval < 1) next.botJoinInterval = 'Bot join interval must be at least 1 second';
     }
+    const minBuyIn = Number(form.minBuyIn);
+    if (isNaN(minBuyIn) || minBuyIn < 0) next.minBuyIn = 'Min buy-in must be ≥ 0';
+    const entryFee = Number(form.entryFee);
+    if (isNaN(entryFee) || entryFee < 0) next.entryFee = 'Entry fee must be ≥ 0';
+
     setEditModal((prev) => ({ ...prev, errors: next }));
     return Object.keys(next).length === 0;
   };
@@ -145,6 +155,8 @@ export default function Tables() {
       maxBotCount: form.isBotGame ? Number(form.maxBotCount) || 0 : null,
       botJoinInterval: form.isBotGame ? Number(form.botJoinInterval) || null : null,
       serviceCharge: Number(form.serviceCharge) || 12,
+      minBuyIn: Number(form.minBuyIn) || 0,
+      entryFee: Number(form.entryFee) || 0,
     };
     setEditModal((prev) => ({ ...prev, saving: true }));
     try {
@@ -371,6 +383,26 @@ export default function Tables() {
                 error={editModal.errors.serviceCharge}
                 placeholder="e.g. 12"
               />
+              <FormField
+                id="editMinBuyIn"
+                label="Min Buy-in"
+                type="number"
+                name="minBuyIn"
+                min={0}
+                value={editModal.form.minBuyIn}
+                onChange={(e) => updateEditForm('minBuyIn', e.target.value)}
+                error={editModal.errors.minBuyIn}
+              />
+              <FormField
+                id="editEntryFee"
+                label="Entry fee"
+                type="number"
+                name="entryFee"
+                min={0}
+                value={editModal.form.entryFee}
+                onChange={(e) => updateEditForm('entryFee', e.target.value)}
+                error={editModal.errors.entryFee}
+              />
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
                   <input
@@ -444,6 +476,7 @@ export default function Tables() {
                 <div style={{ fontWeight: 600, marginBottom: 4 }}>{t.id ?? '—'}</div>
                 <div style={{ fontSize: 14, color: '#555', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <span>Seats: {t.seatCount ?? '—'} · Min: {t.minPlayers ?? 2} · Blinds: {t.smallBlind ?? '—'}/{t.bigBlind ?? '—'}</span>
+                  <span>Min Buy-in: {t.minBuyIn ?? 0} · Entry Fee: {t.entryFee ?? 0}</span>
                   {t.isBotGame && (
                     <span style={{ padding: '2px 6px', background: '#4caf50', color: '#fff', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>Bot game</span>
                   )}
