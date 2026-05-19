@@ -33,6 +33,7 @@ export default function Play() {
   const [tableConfig, setTableConfig] = useState(null);
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveMessage, setLeaveMessage] = useState({ type: '', text: '' });
+  const [newGameLoading, setNewGameLoading] = useState(false);
 
 
   const executeGameAction = useCallback(async (actionType, extraPayload = {}) => {
@@ -333,6 +334,11 @@ export default function Play() {
     }
   };
 
+  const handleNewGame = () => {
+    setNewGameLoading(true);
+    window.location.reload();
+  };
+
   const pageStyle = {
     position: 'fixed',
     top: 0,
@@ -431,6 +437,57 @@ export default function Play() {
             pToken={tokenForJoin}
             onActionSubmitted={() => { }}
           />
+        )}
+        {hasGameSession && (gameSession.gameOver || gameSession.status === 'COMPLETED') && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            padding: '1.25rem',
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(12px)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+            width: '100%',
+            boxSizing: 'border-box',
+            zIndex: 1000,
+          }}>
+            <div style={{ color: '#fff', fontSize: '16px', fontWeight: 600, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+              Game Finished!
+            </div>
+            <button
+              onClick={handleNewGame}
+              disabled={newGameLoading}
+              style={{
+                padding: '12px 36px',
+                background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease-in-out',
+                boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
+                outline: 'none',
+              }}
+              onMouseEnter={(e) => {
+                if (!newGameLoading) {
+                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(76, 175, 80, 0.6)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!newGameLoading) {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.4)';
+                }
+              }}
+            >
+              {newGameLoading ? 'Starting New Game...' : 'Play New Game'}
+            </button>
+          </div>
         )}
       </div>
     </div>
