@@ -20,6 +20,9 @@ const defaultValues = {
   botActionMaxPercent: 15,
   minBuyIn: 100,
   entryFee: 100,
+  botCheatMode: 'NONE',
+  botWinPattern: '',
+  botWinProbability: 70,
 };
 
 export default function TableConfig() {
@@ -35,9 +38,9 @@ export default function TableConfig() {
     
     if (type === 'checkbox') {
       processedValue = checked;
-    } else if (name === 'tableName') {
+    } else if (name === 'tableName' || name === 'botCheatMode' || name === 'botWinPattern') {
       processedValue = value;
-    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge' || name === 'minBuyIn' || name === 'entryFee') {
+    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge' || name === 'minBuyIn' || name === 'entryFee' || name === 'botWinProbability') {
       processedValue = value === '' ? '' : Number(value);
     } else if (name === 'turnTimer') {
       processedValue = value === '' ? 0 : Number(value);
@@ -113,6 +116,9 @@ export default function TableConfig() {
       botActionMaxPercent: Number(form.botActionMaxPercent) || 20,
       minBuyIn: Number(form.minBuyIn) || 0,
       entryFee: Number(form.entryFee) || 0,
+      botCheatMode: form.isBotGame ? form.botCheatMode : 'NONE',
+      botWinPattern: form.isBotGame && form.botCheatMode === 'PATTERN' ? form.botWinPattern : null,
+      botWinProbability: form.isBotGame && form.botCheatMode === 'STEALTH' ? Number(form.botWinProbability) || 0 : null,
     };
 
     setLoading(true);
@@ -198,6 +204,45 @@ export default function TableConfig() {
               onChange={handleChange}
               error={errors.botActionMaxPercent}
             />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', gridColumn: '1 / -1' }}>
+              <label htmlFor="botCheatMode" style={{ fontSize: 14, fontWeight: 'bold' }}>Bot Cheat Mode</label>
+              <select
+                id="botCheatMode"
+                name="botCheatMode"
+                value={form.botCheatMode}
+                onChange={handleChange}
+                style={{ padding: '0.5rem', fontSize: 14, border: '1px solid #ccc', borderRadius: 4, width: '100%' }}
+              >
+                <option value="NONE">None (Fair Game)</option>
+                <option value="ABSOLUTE_WIN">Absolute Win (Bot Always Wins)</option>
+                <option value="PATTERN">Pattern (Predictable e.g. L,L,W)</option>
+                <option value="STEALTH">Stealth (Probability-based)</option>
+              </select>
+            </div>
+            {form.botCheatMode === 'PATTERN' && (
+              <FormField
+                id="botWinPattern"
+                label="Bot Win Pattern (e.g. L,L,W)"
+                name="botWinPattern"
+                type="text"
+                value={form.botWinPattern}
+                onChange={handleChange}
+                placeholder="L,L,W"
+              />
+            )}
+            {form.botCheatMode === 'STEALTH' && (
+              <FormField
+                id="botWinProbability"
+                label="Bot Win Probability (%)"
+                name="botWinProbability"
+                type="number"
+                min={0}
+                max={100}
+                value={form.botWinProbability}
+                onChange={handleChange}
+                placeholder="70"
+              />
+            )}
           </div>
         )}
         

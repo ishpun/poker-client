@@ -62,6 +62,9 @@ export default function Tables() {
         serviceCharge: t.serviceCharge ?? 12,
         minBuyIn: t.minBuyIn ?? 100,
         entryFee: t.entryFee ?? 100,
+        botCheatMode: t.botCheatMode ?? 'NONE',
+        botWinPattern: t.botWinPattern ?? '',
+        botWinProbability: t.botWinProbability ?? 70,
       },
       errors: {},
       saving: false,
@@ -83,9 +86,9 @@ export default function Tables() {
     let processedValue;
     if (name === 'isBotGame') {
       processedValue = Boolean(value);
-    } else if (name === 'tableName') {
+    } else if (name === 'tableName' || name === 'botCheatMode' || name === 'botWinPattern') {
       processedValue = value;
-    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge' || name === 'minBuyIn' || name === 'entryFee') {
+    } else if (name === 'maxBotCount' || name === 'botJoinInterval' || name === 'serviceCharge' || name === 'minBuyIn' || name === 'entryFee' || name === 'botWinProbability') {
       processedValue = value === '' ? '' : Number(value);
     } else if (name === 'turnTimer') {
       processedValue = value === '' ? 0 : Number(value);
@@ -157,6 +160,9 @@ export default function Tables() {
       serviceCharge: Number(form.serviceCharge) || 12,
       minBuyIn: Number(form.minBuyIn) || 0,
       entryFee: Number(form.entryFee) || 0,
+      botCheatMode: form.isBotGame ? form.botCheatMode : 'NONE',
+      botWinPattern: form.isBotGame && form.botCheatMode === 'PATTERN' ? form.botWinPattern : null,
+      botWinProbability: form.isBotGame && form.botCheatMode === 'STEALTH' ? Number(form.botWinProbability) || 0 : null,
     };
     setEditModal((prev) => ({ ...prev, saving: true }));
     try {
@@ -442,6 +448,45 @@ export default function Tables() {
                     error={editModal.errors.botJoinInterval}
                     placeholder="e.g. 5"
                   />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', gridColumn: '1 / -1' }}>
+                    <label htmlFor="editBotCheatMode" style={{ fontSize: 14, fontWeight: 'bold' }}>Bot Cheat Mode</label>
+                    <select
+                      id="editBotCheatMode"
+                      name="botCheatMode"
+                      value={editModal.form.botCheatMode}
+                      onChange={(e) => updateEditForm('botCheatMode', e.target.value)}
+                      style={{ padding: '0.5rem', fontSize: 14, border: '1px solid #ccc', borderRadius: 4, width: '100%' }}
+                    >
+                      <option value="NONE">None (Fair Game)</option>
+                      <option value="ABSOLUTE_WIN">Absolute Win (Bot Always Wins)</option>
+                      <option value="PATTERN">Pattern (Predictable e.g. L,L,W)</option>
+                      <option value="STEALTH">Stealth (Probability-based)</option>
+                    </select>
+                  </div>
+                  {editModal.form.botCheatMode === 'PATTERN' && (
+                    <FormField
+                      id="editBotWinPattern"
+                      label="Bot Win Pattern (e.g. L,L,W)"
+                      name="botWinPattern"
+                      type="text"
+                      value={editModal.form.botWinPattern}
+                      onChange={(e) => updateEditForm('botWinPattern', e.target.value)}
+                      placeholder="L,L,W"
+                    />
+                  )}
+                  {editModal.form.botCheatMode === 'STEALTH' && (
+                    <FormField
+                      id="editBotWinProbability"
+                      label="Bot Win Probability (%)"
+                      name="botWinProbability"
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={editModal.form.botWinProbability}
+                      onChange={(e) => updateEditForm('botWinProbability', e.target.value)}
+                      placeholder="70"
+                    />
+                  )}
                 </div>
               )}
               {editModal.message && (
