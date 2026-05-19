@@ -310,100 +310,103 @@ export default function Tables() {
           <>
             <div style={{ marginBottom: '0.5rem', fontSize: 14, color: '#666' }}>Table ID: <strong>{editModal.table.id}</strong></div>
             <form onSubmit={submitEdit}>
-              <FormField
-                id="editTableName"
-                label="Table name (optional)"
-                type="text"
-                name="tableName"
-                value={editModal.form.tableName}
-                onChange={(e) => updateEditForm('tableName', e.target.value)}
-                error={editModal.errors.tableName}
-                placeholder="e.g. Main table"
-              />
-              <FormField
-                id="editSeatCount"
-                label="Seat count (2–10)"
-                type="number"
-                name="seatCount"
-                min={2}
-                max={10}
-                value={editModal.form.seatCount}
-                onChange={(e) => updateEditForm('seatCount', e.target.value)}
-                error={editModal.errors.seatCount}
-              />
-              <FormField
-                id="editMinPlayers"
-                label="Min players"
-                type="number"
-                name="minPlayers"
-                min={2}
-                value={editModal.form.minPlayers}
-                onChange={(e) => updateEditForm('minPlayers', e.target.value)}
-                error={editModal.errors.minPlayers}
-              />
-              <FormField
-                id="editSmallBlind"
-                label="Small blind"
-                type="number"
-                name="smallBlind"
-                min={0}
-                value={editModal.form.smallBlind}
-                onChange={(e) => updateEditForm('smallBlind', e.target.value)}
-                error={editModal.errors.smallBlind}
-              />
-              <FormField
-                id="editBigBlind"
-                label="Big blind"
-                type="number"
-                name="bigBlind"
-                min={0}
-                value={editModal.form.bigBlind}
-                onChange={(e) => updateEditForm('bigBlind', e.target.value)}
-                error={editModal.errors.bigBlind}
-              />
-              <FormField
-                id="editTurnTimer"
-                label="Turn timer (seconds, 0 = off)"
-                type="number"
-                name="turnTimer"
-                min={0}
-                value={editModal.form.turnTimer}
-                onChange={(e) => updateEditForm('turnTimer', e.target.value)}
-                error={editModal.errors.turnTimer}
-              />
-              <FormField
-                id="editServiceCharge"
-                label="Service charge (%)"
-                type="number"
-                name="serviceCharge"
-                min={0}
-                max={100}
-                value={editModal.form.serviceCharge}
-                onChange={(e) => updateEditForm('serviceCharge', e.target.value)}
-                error={editModal.errors.serviceCharge}
-                placeholder="e.g. 12"
-              />
-              <FormField
-                id="editMinBuyIn"
-                label="Min Buy-in"
-                type="number"
-                name="minBuyIn"
-                min={0}
-                value={editModal.form.minBuyIn}
-                onChange={(e) => updateEditForm('minBuyIn', e.target.value)}
-                error={editModal.errors.minBuyIn}
-              />
-              <FormField
-                id="editEntryFee"
-                label="Entry fee"
-                type="number"
-                name="entryFee"
-                min={0}
-                value={editModal.form.entryFee}
-                onChange={(e) => updateEditForm('entryFee', e.target.value)}
-                error={editModal.errors.entryFee}
-              />
-              <div style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                <FormField
+                  id="editTableName"
+                  label="Table name (optional)"
+                  type="text"
+                  name="tableName"
+                  value={editModal.form.tableName}
+                  onChange={(e) => updateEditForm('tableName', e.target.value)}
+                  error={editModal.errors.tableName}
+                  placeholder="e.g. Main table"
+                />
+                <FormField
+                  id="editSeatCount"
+                  label="Seat count (2–10)"
+                  type="number"
+                  name="seatCount"
+                  min={2}
+                  max={10}
+                  value={editModal.form.seatCount}
+                  onChange={(e) => updateEditForm('seatCount', e.target.value)}
+                  error={editModal.errors.seatCount}
+                />
+                <FormField
+                  id="editMinPlayers"
+                  label="Min players"
+                  type="number"
+                  name="minPlayers"
+                  min={2}
+                  value={editModal.form.minPlayers}
+                  onChange={(e) => updateEditForm('minPlayers', e.target.value)}
+                  error={editModal.errors.minPlayers}
+                />
+                <FormField
+                  id="editSmallBlind"
+                  label="Small blind"
+                  type="number"
+                  name="smallBlind"
+                  min={0}
+                  value={editModal.form.smallBlind}
+                  onChange={(e) => updateEditForm('smallBlind', e.target.value)}
+                  error={editModal.errors.smallBlind}
+                />
+                <FormField
+                  id="editBigBlind"
+                  label="Big blind"
+                  type="number"
+                  name="bigBlind"
+                  min={0}
+                  value={editModal.form.bigBlind}
+                  onChange={(e) => updateEditForm('bigBlind', e.target.value)}
+                  error={editModal.errors.bigBlind}
+                />
+                <FormField
+                  id="editTurnTimer"
+                  label="Turn timer (seconds, 0 = off)"
+                  type="number"
+                  name="turnTimer"
+                  min={0}
+                  value={editModal.form.turnTimer}
+                  onChange={(e) => updateEditForm('turnTimer', e.target.value)}
+                  error={editModal.errors.turnTimer}
+                />
+                <FormField
+                  id="editServiceCharge"
+                  label="Service charge (%)"
+                  type="number"
+                  name="serviceCharge"
+                  min={0}
+                  max={100}
+                  value={editModal.form.serviceCharge}
+                  onChange={(e) => updateEditForm('serviceCharge', e.target.value)}
+                  error={editModal.errors.serviceCharge}
+                  placeholder="e.g. 12"
+                />
+                <FormField
+                  id="editMinBuyIn"
+                  label="Min Buy-in"
+                  type="number"
+                  name="minBuyIn"
+                  min={0}
+                  value={editModal.form.minBuyIn}
+                  onChange={(e) => updateEditForm('minBuyIn', e.target.value)}
+                  error={editModal.errors.minBuyIn}
+                />
+                <FormField
+                  id="editEntryFee"
+                  label="Entry fee"
+                  type="number"
+                  name="entryFee"
+                  min={0}
+                  value={editModal.form.entryFee}
+                  onChange={(e) => updateEditForm('entryFee', e.target.value)}
+                  error={editModal.errors.entryFee}
+                />
+              </div>
+
+              <div style={{ margin: '1rem 0' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
                   <input
                     type="checkbox"
@@ -413,8 +416,9 @@ export default function Tables() {
                   <span>Bot game</span>
                 </label>
               </div>
+
               {editModal.form.isBotGame && (
-                <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem', marginBottom: '1rem' }}>
                   <FormField
                     id="editMaxBotCount"
                     label="Max bot count (required)"
@@ -438,7 +442,7 @@ export default function Tables() {
                     error={editModal.errors.botJoinInterval}
                     placeholder="e.g. 5"
                   />
-                </>
+                </div>
               )}
               {editModal.message && (
                 <p style={{ color: editModal.message === 'Saved.' ? 'green' : 'red', marginBottom: '1rem', fontSize: 14 }}>{editModal.message}</p>

@@ -132,23 +132,27 @@ export default function TableConfig() {
     <div className="table-config-page">
       <h1>Table configuration</h1>
       <form onSubmit={handleSubmit}>
-        <FormField id="tableName" label="Table name (optional)" name="tableName" type="text" value={form.tableName} onChange={handleChange} error={errors.tableName} placeholder="e.g. Main table" />
-        <FormField id="seatCount" label="Seat count (2–10)" name="seatCount" type="number" min={2} max={10} value={form.seatCount} onChange={handleChange} error={errors.seatCount} />
-        <FormField id="minPlayers" label="Min players" name="minPlayers" type="number" min={2} value={form.minPlayers} onChange={handleChange} error={errors.minPlayers} />
-        <FormField id="smallBlind" label="Small blind" name="smallBlind" type="number" min={0} value={form.smallBlind} onChange={handleChange} error={errors.smallBlind} />
-        <FormField id="bigBlind" label="Big blind" name="bigBlind" type="number" min={0} value={form.bigBlind} onChange={handleChange} error={errors.bigBlind} />
-        <FormField id="turnTimer" label="Turn timer (seconds, 0 = off)" name="turnTimer" type="number" min={0} value={form.turnTimer} onChange={handleChange} error={errors.turnTimer} />
-        <FormField id="minBuyIn" label="Min Buy-in" name="minBuyIn" type="number" min={0} value={form.minBuyIn} onChange={handleChange} error={errors.minBuyIn} />
-        <FormField id="entryFee" label="Entry fee" name="entryFee" type="number" min={0} value={form.entryFee} onChange={handleChange} error={errors.entryFee} />
-        <FormField id="serviceCharge" label="Service charge (%)" name="serviceCharge" type="number" min={0} max={100} value={form.serviceCharge} onChange={handleChange} error={errors.serviceCharge} placeholder="e.g. 12" />
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+          <FormField id="tableName" label="Table name (optional)" name="tableName" type="text" value={form.tableName} onChange={handleChange} error={errors.tableName} placeholder="e.g. Main table" />
+          <FormField id="seatCount" label="Seat count (2–10)" name="seatCount" type="number" min={2} max={10} value={form.seatCount} onChange={handleChange} error={errors.seatCount} />
+          <FormField id="minPlayers" label="Min players" name="minPlayers" type="number" min={2} value={form.minPlayers} onChange={handleChange} error={errors.minPlayers} />
+          <FormField id="smallBlind" label="Small blind" name="smallBlind" type="number" min={0} value={form.smallBlind} onChange={handleChange} error={errors.smallBlind} />
+          <FormField id="bigBlind" label="Big blind" name="bigBlind" type="number" min={0} value={form.bigBlind} onChange={handleChange} error={errors.bigBlind} />
+          <FormField id="turnTimer" label="Turn timer (seconds, 0 = off)" name="turnTimer" type="number" min={0} value={form.turnTimer} onChange={handleChange} error={errors.turnTimer} />
+          <FormField id="minBuyIn" label="Min Buy-in" name="minBuyIn" type="number" min={0} value={form.minBuyIn} onChange={handleChange} error={errors.minBuyIn} />
+          <FormField id="entryFee" label="Entry fee" name="entryFee" type="number" min={0} value={form.entryFee} onChange={handleChange} error={errors.entryFee} />
+          <FormField id="serviceCharge" label="Service charge (%)" name="serviceCharge" type="number" min={0} max={100} value={form.serviceCharge} onChange={handleChange} error={errors.serviceCharge} placeholder="e.g. 12" />
+        </div>
+        
+        <div style={{ margin: '1rem 0' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 14, cursor: 'pointer' }}>
             <input type="checkbox" name="isBotGame" checked={form.isBotGame} onChange={handleChange} />
             <span>Bot game</span>
           </label>
         </div>
+
         {form.isBotGame && (
-          <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem', marginBottom: '1rem' }}>
             <FormField
               id="maxBotCount"
               label="Max bot count (required for bot game)"
@@ -194,12 +198,14 @@ export default function TableConfig() {
               onChange={handleChange}
               error={errors.botActionMaxPercent}
             />
-          </>
+          </div>
         )}
+        
         {message.text && (
           <p style={{ color: message.type === 'error' ? 'red' : 'green', marginBottom: '1rem' }}>{message.text}</p>
         )}
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
           <Button type="submit" disabled={loading}>{loading ? 'Saving…' : 'Save table config'}</Button>
           <Button type="button" variant="secondary" onClick={() => navigate('/tables')}>Back</Button>
         </div>

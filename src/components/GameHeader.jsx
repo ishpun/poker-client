@@ -25,7 +25,7 @@ export default function GameHeader({ tableConfig, tableId, sessionId }) {
     `Small blind: ${tableConfig.smallBlind ?? '—'}`,
     `Big blind: ${tableConfig.bigBlind ?? '—'}`,
     `Table ID: ${trimIdByFirst(tableId)}`,
-    sessionId && `Session ID: ${trimIdByFirst(sessionId)}`,
+    sessionId && `Session ID: ${sessionId}`,
   ].filter(Boolean);
   return <header className="game-header" style={style}>{parts.join(sep)}</header>;
 }
