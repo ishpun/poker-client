@@ -85,6 +85,20 @@ export default function TableConfig() {
       else if (!isNaN(seatCountNum) && maxBot > seatCountNum) next.maxBotCount = `Cannot exceed seat count (${seatCountNum})`;
       const botJoinInterval = form.botJoinInterval === '' ? NaN : Number(form.botJoinInterval);
       if (isNaN(botJoinInterval) || botJoinInterval < 1) next.botJoinInterval = 'Bot join interval must be at least 1 second';
+      
+      if (form.botCheatMode === 'PATTERN') {
+        if (!form.botWinPattern || form.botWinPattern.trim() === '') {
+          next.botWinPattern = 'Win pattern is required when PATTERN mode is active';
+        } else {
+          const parts = form.botWinPattern.split(',').map(s => s.trim()).filter(s => s !== '');
+          const invalidChars = parts.filter(s => !/^[WwLl01]$/.test(s));
+          if (invalidChars.length > 0) {
+            next.botWinPattern = 'Pattern must only contain W or L (comma-separated, e.g. L,W,L)';
+          } else if (parts.length > 4) {
+            next.botWinPattern = 'Pattern can have at most 4 characters (e.g. L,W,W,L)';
+          }
+        }
+      }
     }
     const minBuyIn = Number(form.minBuyIn);
     if (isNaN(minBuyIn) || minBuyIn < 0) next.minBuyIn = 'Min buy-in must be ≥ 0';
@@ -228,6 +242,7 @@ export default function TableConfig() {
                 value={form.botWinPattern}
                 onChange={handleChange}
                 placeholder="L,L,W"
+                error={errors.botWinPattern}
               />
             )}
             {form.botCheatMode === 'STEALTH' && (
