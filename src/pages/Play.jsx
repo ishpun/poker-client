@@ -24,7 +24,7 @@ export default function Play() {
   const currency = (currencyParam || 'PC').toUpperCase();
   const playerId = searchParams.get('account') || playerIdParam;
   const tenantId = searchParams.get('tenantId') || tenantIdParam || '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9';
-  const tokenRaw = tokenParam || searchParams.get('token');
+  const tokenRaw = tokenParam || searchParams.get('pToken');
   const tokenForJoin = (tokenRaw === 'null' || !tokenRaw) ? null : tokenRaw;
   const dispatch = useDispatch();
   const player = useSelector((state) => state.player);
