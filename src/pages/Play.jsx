@@ -18,11 +18,12 @@ import { setGameSession, clearGameSession } from '../store/gameSessionSlice';
 const joinPromiseByKey = {};
 
 export default function Play() {
-  const { tableId, playerId, currency: currencyParam, token: tokenParam, tenantId: tenantIdParam } = useParams();
+  const { tableId, playerIdParam, currency: currencyParam, token: tokenParam, tenantId: tenantIdParam } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const currency = (currencyParam || 'PC').toUpperCase();
-  const tenantId = tenantIdParam || '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9';
+  const playerId = searchParams.get('account') || playerIdParam;
+  const tenantId = searchParams.get('tenantId') || tenantIdParam || '64b0bc14-6e24-4d10-9bf3-6afb7cac3ff9';
   const tokenRaw = tokenParam || searchParams.get('token');
   const tokenForJoin = (tokenRaw === 'null' || !tokenRaw) ? null : tokenRaw;
   const dispatch = useDispatch();
