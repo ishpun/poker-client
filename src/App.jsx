@@ -13,6 +13,7 @@ function App() {
         <Route path="/table-config" element={<TableConfig />} />
         <Route path="/play/:tableId/:playerId/:currency/:token/:tenantId" element={<Play />} />
         <Route path="/play/:tableId/:playerId" element={<Play />} />
+        <Route path="/play/:tableId" element={<Play />} />
         <Route path="/replay/:sessionId" element={<GameReplayPage />} />
       </Routes>
     </BrowserRouter>
