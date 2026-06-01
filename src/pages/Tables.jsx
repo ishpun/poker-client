@@ -282,7 +282,7 @@ export default function Tables() {
                 ...prev,
                 links: playerIds.map((playerId) => ({
                   playerId,
-                  url: `/play/${prev.tableId}/${playerId}/${currencyVal}/${tokenVal}/${tenantIdVal}`
+                  url: `/play/${prev.tableId}?account=${playerId}&currency=${currencyVal}&pToken=${tokenVal}&tenantId=${tenantIdVal}`
                 }))
               }));
             }}
