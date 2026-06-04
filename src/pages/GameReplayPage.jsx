@@ -97,12 +97,61 @@ export default function GameReplayPage() {
       
       cumulativeCommunityCards = streetCards;
 
-      // Reset lastActions at start of street, and set first actor
-      const firstActionInRound = round.actions?.[0];
+      const blindActions = [];
+      const normalActions = [];
+      if (street === 'PREFLOP') {
+        (round.actions || []).forEach(action => {
+          if (action.action === 'POST_SB' || action.action === 'POST_BB') {
+            blindActions.push(action);
+          } else {
+            normalActions.push(action);
+          }
+        });
+      } else {
+        normalActions.push(...(round.actions || []));
+      }
+
+      // 1. Process blind actions (Small Blind and Big Blind) before the street start step
+      blindActions.forEach((action, bIdx) => {
+        const nextAction = bIdx < blindActions.length - 1 ? blindActions[bIdx + 1] : normalActions[0];
+        
+        currentSeats = currentSeats.map(seat => {
+          const isActor = Number(seat.position) === Number(action.seatIndex);
+          const isNextActor = nextAction && Number(seat.position) === Number(nextAction.seatIndex);
+          
+          let updatedSeat = { ...seat };
+          if (isActor) {
+            updatedSeat.lastAction = action.action;
+            if (action.playerBalance != null) {
+              updatedSeat.playerBalance = action.playerBalance;
+            }
+          }
+          updatedSeat.isCurrentActor = !!isNextActor;
+          return updatedSeat;
+        });
+
+        currentPot += (action.betAmount || 0);
+
+        s.push({
+          type: 'ACTION',
+          description: `[Blinds] ${action.playerId} -> ${action.action === 'POST_SB' ? 'Small Blind' : 'Big Blind'} (${action.betAmount || 0})${action.playerBalance != null ? ` | Bal: ${action.playerBalance}` : ''}`,
+          state: {
+            ...sessionData,
+            potAmount: currentPot,
+            communityCards: [...cumulativeCommunityCards],
+            currentStreet: round.street,
+            seats: [...currentSeats],
+            lastHandWinInfo: []
+          }
+        });
+      });
+
+      // 2. Push the street start step
+      const firstNormalAction = normalActions[0];
       currentSeats = currentSeats.map(seat => ({
         ...seat,
         lastAction: null,
-        isCurrentActor: firstActionInRound && Number(seat.position) === Number(firstActionInRound.seatIndex)
+        isCurrentActor: firstNormalAction && Number(seat.position) === Number(firstNormalAction.seatIndex)
       }));
 
       s.push({
@@ -118,8 +167,9 @@ export default function GameReplayPage() {
         }
       });
 
-      round.actions?.forEach((action, aIdx) => {
-        const nextAction = round.actions[aIdx + 1];
+      // 3. Process normal actions
+      normalActions.forEach((action, aIdx) => {
+        const nextAction = normalActions[aIdx + 1];
         
         currentSeats = currentSeats.map(seat => {
           const isActor = Number(seat.position) === Number(action.seatIndex);
@@ -145,7 +195,7 @@ export default function GameReplayPage() {
 
         s.push({
           type: 'ACTION',
-          description: `[${round.street}] ${action.playerId} -> ${action.action} (${action.betAmount || 0})${action.playerBalance != null ? ` | Bal: ${action.playerBalance}` : ''}`,
+          description: `[${round.street}] ${action.playerId} -> ${action.action === 'POST_SB' ? 'Small Blind' : action.action === 'POST_BB' ? 'Big Blind' : action.action} (${action.betAmount || 0})${action.playerBalance != null ? ` | Bal: ${action.playerBalance}` : ''}`,
           state: {
             ...sessionData,
             potAmount: currentPot,

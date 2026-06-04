@@ -325,6 +325,8 @@ function formatAction(action) {
     'BET': 'Bet',
     'CHECK': 'Check',
     'ALL_IN': 'All In',
+    'POST_SB': 'Small Blind',
+    'POST_BB': 'Big Blind',
   };
   return actionMap[action.toUpperCase()] || action;
 }
